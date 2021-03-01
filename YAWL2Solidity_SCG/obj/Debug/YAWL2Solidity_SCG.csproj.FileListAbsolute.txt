@@ -18,3 +18,13 @@ C:\Users\Xuling\Desktop\GitHub_Xuling\YAWL2Solidity_SCG\YAWL2Solidity_SCG\obj\De
 C:\Users\Xuling\Desktop\GitHub_Xuling\YAWL2Solidity_SCG\YAWL2Solidity_SCG\obj\Debug\YAWL2Solidity_SCG.csproj.CoreCompileInputs.cache
 C:\Users\Xuling\Desktop\GitHub_Xuling\YAWL2Solidity_SCG\YAWL2Solidity_SCG\obj\Debug\YAWL2Solidity_SCG.exe
 C:\Users\Xuling\Desktop\GitHub_Xuling\YAWL2Solidity_SCG\YAWL2Solidity_SCG\obj\Debug\YAWL2Solidity_SCG.pdb
+D:\Xulings_Github\YAWL2Solidity_SCG\YAWL2Solidity_SCG\bin\Debug\YAWL2Solidity_SCG.exe.config
+D:\Xulings_Github\YAWL2Solidity_SCG\YAWL2Solidity_SCG\bin\Debug\YAWL2Solidity_SCG.exe
+D:\Xulings_Github\YAWL2Solidity_SCG\YAWL2Solidity_SCG\bin\Debug\YAWL2Solidity_SCG.pdb
+D:\Xulings_Github\YAWL2Solidity_SCG\YAWL2Solidity_SCG\obj\Debug\YAWL2Solidity_SCG.csprojAssemblyReference.cache
+D:\Xulings_Github\YAWL2Solidity_SCG\YAWL2Solidity_SCG\obj\Debug\YAWL2Solidity_SCG.MainForm.resources
+D:\Xulings_Github\YAWL2Solidity_SCG\YAWL2Solidity_SCG\obj\Debug\YAWL2Solidity_SCG.Properties.Resources.resources
+D:\Xulings_Github\YAWL2Solidity_SCG\YAWL2Solidity_SCG\obj\Debug\YAWL2Solidity_SCG.csproj.GenerateResource.cache
+D:\Xulings_Github\YAWL2Solidity_SCG\YAWL2Solidity_SCG\obj\Debug\YAWL2Solidity_SCG.csproj.CoreCompileInputs.cache
+D:\Xulings_Github\YAWL2Solidity_SCG\YAWL2Solidity_SCG\obj\Debug\YAWL2Solidity_SCG.exe
+D:\Xulings_Github\YAWL2Solidity_SCG\YAWL2Solidity_SCG\obj\Debug\YAWL2Solidity_SCG.pdb

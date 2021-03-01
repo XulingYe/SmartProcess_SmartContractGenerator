@@ -263,11 +263,12 @@ namespace YAWL2Solidity_SCG
             //  \/                                                      |
             // (x1,y2)                                              (x6,y2)
             //         (x2,y3) -> (x3,y3)        (x4,y3) -> (x5,y3)
-
+            
             //draw arrows
-            Graphics g = e.Graphics;
+            Graphics g = CreateGraphics();
             Pen p = new Pen(Brushes.DeepSkyBlue, 30);
             p.StartCap = LineCap.ArrowAnchor;
+            g.Clear(Color.LightGray);
             g.DrawLine(p, x1, y2, x1, y1);
             g.DrawLine(p, x3, y3, x2, y3);
             g.DrawLine(p, x5, y3, x4, y3);

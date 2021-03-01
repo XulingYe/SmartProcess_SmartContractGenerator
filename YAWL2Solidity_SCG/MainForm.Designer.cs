@@ -214,6 +214,7 @@ namespace YAWL2Solidity_SCG
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.LightGray;
             this.ClientSize = new System.Drawing.Size(1353, 668);
             this.Controls.Add(this.groupBox_table);
             this.Controls.Add(this.btn_fromTable2Solidity);
@@ -223,7 +224,6 @@ namespace YAWL2Solidity_SCG
             this.Name = "MainForm";
             this.Text = "YAWL to Solidity - Smart contract generator";
             this.SizeChanged += new System.EventHandler(this.MainForm_SizeChanged);
-            //this.Paint += new System.Windows.Forms.PaintEventHandler(this.MainForm_Paint);
             this.groupBox_yawl.ResumeLayout(false);
             this.groupBox_yawl.PerformLayout();
             this.groupBox_solidity.ResumeLayout(false);
