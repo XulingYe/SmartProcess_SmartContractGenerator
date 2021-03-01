@@ -18,7 +18,7 @@ namespace YAWL2Solidity_SCG
         {
             InitializeComponent();
 
-           // Auto_Size();
+            Auto_Size();
         }
 
         #region VariablesDefinition
@@ -136,9 +136,11 @@ namespace YAWL2Solidity_SCG
                 textBox_SolidityExportedPath.Text = "";
             }
         }
+
+        private PictureBox pictureBox1 = new PictureBox();
         private void MainForm_SizeChanged(object sender, EventArgs e)
         {
-           // Auto_Size();
+            Auto_Size();
         }
 
         #region generalFunctions
@@ -172,19 +174,55 @@ namespace YAWL2Solidity_SCG
         }
 
         private void Auto_Size()
-        { 
-            int groupBoxYAWL_width = (int)((this.ClientSize.Width - 60) /2);
-            this.groupBox_yawl.Location = new Point(0, 0);
-            this.groupBox_yawl.Size = new Size(groupBoxYAWL_width, this.ClientSize.Height);
-            AutosizeYAWL(groupBoxYAWL_width, this.ClientSize.Height);
+        {       
+            int groupBoxYAWL_width = (this.ClientSize.Width - 20) / 2;
+            int groupBoxYAWL_height = (this.ClientSize.Height - 10) / 2;
+            this.groupBox_yawl.Location = new Point(5, 0);
+            this.groupBox_yawl.Size = new Size(groupBoxYAWL_width, groupBoxYAWL_height);
+            AutosizeYAWL(groupBoxYAWL_width, groupBoxYAWL_height);
 
-            this.btn_fromYAWL2Table.Location = new Point(groupBoxYAWL_width+5, this.ClientSize.Height/2-25);
-            this.btn_fromYAWL2Table.Size = new Size(50, 50);
+            int groupBoxSolidity_width = this.ClientSize.Width - groupBoxYAWL_width - 20;
+            this.groupBox_solidity.Location = new Point(this.ClientSize.Width - groupBoxSolidity_width -5, 0);
+            this.groupBox_solidity.Size = new Size(groupBoxSolidity_width, groupBoxYAWL_height);
+            AutosizeSolidity(groupBoxSolidity_width, groupBoxYAWL_height);
 
-            int groupBoxSolidity_width = (int)(this.ClientSize.Width - groupBoxYAWL_width - 60);
-            this.groupBox_solidity.Location = new Point(groupBoxYAWL_width+60, 0);
-            this.groupBox_solidity.Size = new Size(groupBoxSolidity_width, this.ClientSize.Height);
-            AutosizeSolidity(groupBoxSolidity_width, this.ClientSize.Height);
+            int groupBoxTable_width = this.ClientSize.Width / 2;
+            int groupBoxTable_height = this.ClientSize.Height - groupBoxYAWL_height - 10;
+            int groupBoxTable_x = (groupBoxYAWL_width / 2) + 5;
+            this.groupBox_table.Location = new Point(groupBoxTable_x, groupBoxYAWL_height + 5);
+            this.groupBox_table.Size = new Size(groupBoxTable_width, groupBoxTable_height);
+            AutosizeTable(groupBoxTable_width, groupBoxTable_height);
+
+            //left button
+            int btnFromYAWL2Table_x = (this.ClientSize.Width/8) - 75;
+            int btnFromYAWL2Table_y = ((3 * this.ClientSize.Height) / 4) - 42;
+            this.btn_fromYAWL2Table.Location = new Point(btnFromYAWL2Table_x, btnFromYAWL2Table_y);
+            this.btn_fromYAWL2Table.Size = new Size(150, 80);
+
+            //right button
+            int btnFromTable2Solidity_x = this.ClientSize.Width - 150 - btnFromYAWL2Table_x;
+            this.btn_fromTable2Solidity.Location = new Point(btnFromTable2Solidity_x, btnFromYAWL2Table_y);
+            this.btn_fromTable2Solidity.Size = new Size(150, 80);
+
+            //Arrows
+            // (x1,y1)                                              (x6,y1)
+            //   |                                                     /\
+            //  \/                                                      |
+            // (x1,y2)                                              (x6,y2)
+            //         (x2,y3) -> (x3,y3)        (x4,y3) -> (x5,y3)
+            int x1 = btnFromYAWL2Table_x + 75;
+            int x2 = btnFromYAWL2Table_x + 150;
+            int x3 = groupBoxTable_x;
+            int x4 = groupBoxTable_x + groupBoxTable_width;
+            int x5 = btnFromTable2Solidity_x;
+            int x6 = btnFromTable2Solidity_x + 75;
+            int y1 = groupBoxYAWL_height;
+            int y2 = btnFromYAWL2Table_y;
+            int y3 = btnFromYAWL2Table_y + 40;
+            this.Paint += delegate (object s2, PaintEventArgs e2)
+            {
+                this.MainForm_Paint(s2, e2, x1, x2, x3, x4, x5, x6, y1, y2, y3);
+            };
         }
 
         private void AutosizeYAWL(int width_yawl, int height_yawl)
@@ -196,7 +234,7 @@ namespace YAWL2Solidity_SCG
             this.textBox_YAWLImportedPath.Size = new Size(width_yawl-115,22);
 
             this.richTextBox_displayYAWL.Location = new Point(5,55);
-            this.richTextBox_displayYAWL.Size = new Size(width_yawl - 10, height_yawl/2 - 60);
+            this.richTextBox_displayYAWL.Size = new Size(width_yawl - 10, height_yawl - 60);
         }
 
         private void AutosizeSolidity(int width_solidity, int height_solidity)
@@ -211,15 +249,35 @@ namespace YAWL2Solidity_SCG
             this.textBox_SolidityExportedPath.Size = new Size(width_solidity - 125, 22);
         }
 
-        private void MainForm_Paint(object sender, PaintEventArgs e)
+        private void AutosizeTable(int width_table, int height_table)
         {
+            
+        }
+
+
+        private void MainForm_Paint(object sender, PaintEventArgs e, int x1, int x2, int x3, int x4, int x5, int x6,
+            int y1, int y2, int y3)
+        {
+            // (x1,y1)                                              (x6,y1)
+            //   |                                                     /\
+            //  \/                                                      |
+            // (x1,y2)                                              (x6,y2)
+            //         (x2,y3) -> (x3,y3)        (x4,y3) -> (x5,y3)
+
             //draw arrows
             Graphics g = e.Graphics;
             Pen p = new Pen(Brushes.DeepSkyBlue, 30);
             p.StartCap = LineCap.ArrowAnchor;
-            g.DrawLine(p, 340, 450, 200, 320); //(x2,y2)<-(x1,y1)
+            g.DrawLine(p, x1, y2, x1, y1);
+            g.DrawLine(p, x3, y3, x2, y3);
+            g.DrawLine(p, x5, y3, x4, y3);
+            g.DrawLine(p, x6, y1, x6, y2);
+            
+
+            //g.DrawLine(p, 340, 450, 200, 320); //(x2,y2)<-(x1,y1)
             //2*340-200+660
-            g.DrawLine(p, 1140, 320, 1002, 450); //(2*x2-x1+TableWidth,y1)<-(x2+TableWidth,y2)
+            //g.DrawLine(p, 1140, 320, 1002, 450); //(2*x2-x1+TableWidth,y1)<-(x2+TableWidth,y2)
+            //g.DrawLine(System.Drawing.Pens.Red, pictureBox1.Left, pictureBox1.Top, pictureBox1.Right, pictureBox1.Bottom);
 
         }
 

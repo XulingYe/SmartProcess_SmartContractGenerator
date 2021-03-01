@@ -40,14 +40,14 @@ namespace YAWL2Solidity_SCG
             this.groupBox_solidity = new System.Windows.Forms.GroupBox();
             this.richTextBox_displaySolidity = new System.Windows.Forms.RichTextBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.btn_fromTable2Soliditz = new System.Windows.Forms.Button();
+            this.btn_fromTable2Solidity = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.treeView_table = new System.Windows.Forms.TreeView();
+            this.groupBox_table = new System.Windows.Forms.GroupBox();
             this.richTextBox_displayTable = new System.Windows.Forms.RichTextBox();
+            this.treeView_table = new System.Windows.Forms.TreeView();
             this.groupBox_yawl.SuspendLayout();
             this.groupBox_solidity.SuspendLayout();
-            this.groupBox1.SuspendLayout();
+            this.groupBox_table.SuspendLayout();
             this.SuspendLayout();
             // 
             // btn_importYAWL
@@ -62,12 +62,12 @@ namespace YAWL2Solidity_SCG
             // 
             // btn_fromYAWL2Table
             // 
-            this.btn_fromYAWL2Table.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_fromYAWL2Table.Location = new System.Drawing.Point(136, 381);
+            this.btn_fromYAWL2Table.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_fromYAWL2Table.Location = new System.Drawing.Point(95, 431);
             this.btn_fromYAWL2Table.Name = "btn_fromYAWL2Table";
-            this.btn_fromYAWL2Table.Size = new System.Drawing.Size(136, 61);
+            this.btn_fromYAWL2Table.Size = new System.Drawing.Size(145, 75);
             this.btn_fromYAWL2Table.TabIndex = 2;
-            this.btn_fromYAWL2Table.Text = "From YAWL to content checking";
+            this.btn_fromYAWL2Table.Text = "From YAWL \r\nto Checking";
             this.btn_fromYAWL2Table.UseVisualStyleBackColor = true;
             this.btn_fromYAWL2Table.Click += new System.EventHandler(this.btn_fromYAWL2Table_Click);
             // 
@@ -162,16 +162,16 @@ namespace YAWL2Solidity_SCG
             this.label1.TabIndex = 6;
             this.label1.Text = "Solidity";
             // 
-            // btn_fromTable2Soliditz
+            // btn_fromTable2Solidity
             // 
-            this.btn_fromTable2Soliditz.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_fromTable2Soliditz.Location = new System.Drawing.Point(1067, 386);
-            this.btn_fromTable2Soliditz.Name = "btn_fromTable2Soliditz";
-            this.btn_fromTable2Soliditz.Size = new System.Drawing.Size(173, 51);
-            this.btn_fromTable2Soliditz.TabIndex = 10;
-            this.btn_fromTable2Soliditz.Text = "From content checking to Solidity";
-            this.btn_fromTable2Soliditz.UseVisualStyleBackColor = true;
-            this.btn_fromTable2Soliditz.Click += new System.EventHandler(this.btn_fromTable2Solidity_Click);
+            this.btn_fromTable2Solidity.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_fromTable2Solidity.Location = new System.Drawing.Point(1115, 431);
+            this.btn_fromTable2Solidity.Name = "btn_fromTable2Solidity";
+            this.btn_fromTable2Solidity.Size = new System.Drawing.Size(150, 80);
+            this.btn_fromTable2Solidity.TabIndex = 10;
+            this.btn_fromTable2Solidity.Text = "From Checking \r\nto Solidity";
+            this.btn_fromTable2Solidity.UseVisualStyleBackColor = true;
+            this.btn_fromTable2Solidity.Click += new System.EventHandler(this.btn_fromTable2Solidity_Click);
             // 
             // label3
             // 
@@ -183,24 +183,17 @@ namespace YAWL2Solidity_SCG
             this.label3.TabIndex = 7;
             this.label3.Text = "Content checking";
             // 
-            // groupBox1
+            // groupBox_table
             // 
-            this.groupBox1.Controls.Add(this.richTextBox_displayTable);
-            this.groupBox1.Controls.Add(this.treeView_table);
-            this.groupBox1.Controls.Add(this.label3);
-            this.groupBox1.Location = new System.Drawing.Point(340, 317);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(655, 329);
-            this.groupBox1.TabIndex = 9;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "YAWL";
-            // 
-            // treeView_table
-            // 
-            this.treeView_table.Location = new System.Drawing.Point(36, 28);
-            this.treeView_table.Name = "treeView_table";
-            this.treeView_table.Size = new System.Drawing.Size(285, 281);
-            this.treeView_table.TabIndex = 8;
+            this.groupBox_table.Controls.Add(this.richTextBox_displayTable);
+            this.groupBox_table.Controls.Add(this.treeView_table);
+            this.groupBox_table.Controls.Add(this.label3);
+            this.groupBox_table.Location = new System.Drawing.Point(340, 317);
+            this.groupBox_table.Name = "groupBox_table";
+            this.groupBox_table.Size = new System.Drawing.Size(655, 329);
+            this.groupBox_table.TabIndex = 9;
+            this.groupBox_table.TabStop = false;
+            this.groupBox_table.Text = "Table";
             // 
             // richTextBox_displayTable
             // 
@@ -210,26 +203,33 @@ namespace YAWL2Solidity_SCG
             this.richTextBox_displayTable.TabIndex = 9;
             this.richTextBox_displayTable.Text = "";
             // 
+            // treeView_table
+            // 
+            this.treeView_table.Location = new System.Drawing.Point(36, 28);
+            this.treeView_table.Name = "treeView_table";
+            this.treeView_table.Size = new System.Drawing.Size(285, 281);
+            this.treeView_table.TabIndex = 8;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1353, 668);
-            this.Controls.Add(this.groupBox1);
-            this.Controls.Add(this.btn_fromTable2Soliditz);
+            this.Controls.Add(this.groupBox_table);
+            this.Controls.Add(this.btn_fromTable2Solidity);
             this.Controls.Add(this.groupBox_solidity);
             this.Controls.Add(this.groupBox_yawl);
             this.Controls.Add(this.btn_fromYAWL2Table);
             this.Name = "MainForm";
-            this.Text = " ";
+            this.Text = "YAWL to Solidity - Smart contract generator";
             this.SizeChanged += new System.EventHandler(this.MainForm_SizeChanged);
-            this.Paint += new System.Windows.Forms.PaintEventHandler(this.MainForm_Paint);
+            //this.Paint += new System.Windows.Forms.PaintEventHandler(this.MainForm_Paint);
             this.groupBox_yawl.ResumeLayout(false);
             this.groupBox_yawl.PerformLayout();
             this.groupBox_solidity.ResumeLayout(false);
             this.groupBox_solidity.PerformLayout();
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
+            this.groupBox_table.ResumeLayout(false);
+            this.groupBox_table.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -245,11 +245,11 @@ namespace YAWL2Solidity_SCG
         private System.Windows.Forms.GroupBox groupBox_solidity;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Button btn_fromTable2Soliditz;
+        private System.Windows.Forms.Button btn_fromTable2Solidity;
         private System.Windows.Forms.RichTextBox richTextBox_displayYAWL;
         private System.Windows.Forms.RichTextBox richTextBox_displaySolidity;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.GroupBox groupBox_table;
         private System.Windows.Forms.TreeView treeView_table;
         private System.Windows.Forms.RichTextBox richTextBox_displayTable;
     }
