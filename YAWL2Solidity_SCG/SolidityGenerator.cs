@@ -40,10 +40,10 @@ namespace YAWL2Solidity_SCG
                 }
 
                 //local variables
-                solidityAllText += "\n//Local variables\n";
+                solidityAllText += "\n//Defined variables\n";
                 foreach (var localvari_yawl in yAWL.allLocalVariables)
                 {
-                    solidityAllText += "    " + localvari_yawl.type + "  public " + localvari_yawl.name;
+                    solidityAllText += "    " + localvari_yawl.type + " "/*" public "*/ + localvari_yawl.name;
                     if(localvari_yawl.defaultVaule != "" && localvari_yawl.defaultVaule != "0")
                     {
                         solidityAllText += " = " + localvari_yawl.defaultVaule; 
@@ -51,8 +51,8 @@ namespace YAWL2Solidity_SCG
                     solidityAllText += ";\n";
                 }
 
-                //modifier
-                solidityAllText += "\n//Modifier\n";
+                //modifiers
+                solidityAllText += "\n//Modifiers\n";
                 foreach (var modifier_yawl in yAWL.allModifiers)
                 {
                     solidityAllText += "    modifier " + modifier_yawl.name + "(";
@@ -73,12 +73,102 @@ namespace YAWL2Solidity_SCG
                         + "         );\n        _;\n    }\n";
                 }
 
+                //Automated generated process state based on process flows
+                solidityAllText += "\n//Automated generated process state based on process flows\n";
+                solidityAllText += "    enum ProcessFlow { ";
+                int count = 0;
+                string initailValue = "";
+                foreach (var flow in  yAWL.allFlows)
+                {
+                    if (count > 0)
+                    {
+                        solidityAllText += ", ";
+                    }
+                    if (flow.currentProcessName != "InputCondition")
+                    {
+                        solidityAllText += "To" + flow.currentProcessName;
+                        count++;
+                    }
+                    else
+                    {
+                        initailValue = "To" + flow.nextProcesses[0].processName;
+                    }
+                }
+                solidityAllText += " }\n\n";
+                solidityAllText += "    ProcessFlow processFlow = " + initailValue + ";\n\n";
+                //process flow modifier
+                solidityAllText += "    modifier inProcessFlow(ProcessFlow _processFlow){\n"
+                        + "        require(\n          processFlow == _processFlow,\n"
+                        + "           \"Invalid state of the process flow.\"\n"
+                        + "         );\n        _;\n    }\n";
+
+
+
+
                 //functions
                 solidityAllText += "\n//Functions\n";
+                foreach (var function_yawl in yAWL.allFunctions)
+                {
+                    solidityAllText += "    function " + function_yawl.name + "(";
+                    int countInputVaris = 0;
+                    //input parameters
+                    foreach(var inputVari in function_yawl.inputVariables)
+                    {
+                        if (countInputVaris > 0)
+                        {
+                            solidityAllText += ", ";
+                        }
+                        solidityAllText += inputVari.type + " _" + inputVari.name;
+                        countInputVaris++;
+                    }
+                    //in/output variables for input
+                    foreach (var inOutputVari in function_yawl.inOutVariables)
+                    {
+                        if (countInputVaris > 0)
+                        {
+                            solidityAllText += ", ";
+                        }
+                        solidityAllText += inOutputVari.type + inOutputVari.name;
+                        countInputVaris++;
+                    }
+                    solidityAllText += ")\n        public\n";
+                    //modifiers
+                    foreach (var modifi in function_yawl.modifiers)
+                    {
+                        solidityAllText += "        "+ modifi.name + "(";
+                        for (int i = 0; i < modifi.inputVaris.Count; i++)
+                        {
+                            if (i > 0)
+                            {
+                                solidityAllText += ",";
+                            }
+                            solidityAllText += modifi.inputVaris[i].defaultVaule;
+                        }
+                        solidityAllText += ")\n";
+                    }
+                    solidityAllText += "        inProcessFlow(ProcessFlow.To" + function_yawl.name + ")\n";
+                    //return parameters
+                    if (function_yawl.outputVariables.Count>0)
+                    {
+                        solidityAllText += "        returns (";
+                        for (int i = 0; i < function_yawl.outputVariables.Count; i++)
+                        {
+                            if (i > 0)
+                            {
+                                solidityAllText += ",";
+                            }
+                            solidityAllText += function_yawl.outputVariables[i].type;
+                        }
+                        solidityAllText += ")\n";
+                    }
+                    solidityAllText += "    {\n";
+                    //first, 
+
+                    solidityAllText += "    }\n\n";
+                }
 
 
-
-                solidityAllText += "\n}";
+                solidityAllText += "}";
             }
             return solidityAllText;
         }

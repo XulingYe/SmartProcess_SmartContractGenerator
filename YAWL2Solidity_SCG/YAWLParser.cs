@@ -33,18 +33,19 @@ namespace YAWL2Solidity_SCG
             public string name;
             public List<Variable> inputVariables = new List<Variable>();
             public List<Variable> outputVariables = new List<Variable>();
+            public List<Variable> inOutVariables = new List<Variable>();
             public List<Modifier> modifiers = new List<Modifier>();
-            public NextProcess nextProcess = new NextProcess();
+            public Flow nextProcess = new Flow();
         };
-        public class NextProcess
+        public class Flow
         {
-            public string processName;
+            public string currentProcessName;
             public List<ToNextProcess> nextProcesses = new List<ToNextProcess>();
             public string splitOperation; //XOR, OR, AND //only work when it has more than one process.
         };
         public class ToNextProcess
         {
-            public string processname;
+            public string processName;
             public string condition;
         };
         #endregion
@@ -52,6 +53,8 @@ namespace YAWL2Solidity_SCG
         public List<Variable> allLocalVariables = new List<Variable>();
         public List<DefineEnum> allDefinedEnums = new List<DefineEnum>();
         public List<Modifier> allModifiers = new List<Modifier>();
+        public List<Function> allFunctions = new List<Function>();
+        public List<Flow> allFlows = new List<Flow>();
         public string fileName = "default";
 
         public string parseYAWL(string text)
@@ -143,24 +146,23 @@ namespace YAWL2Solidity_SCG
                                             
                                         }
                                     }
-                                    #region ProcessFlow
                                     //process flow, here should initial all the functions
                                     else if (e_LVinRootNet.Name == "processControlElements")
                                     {
-
+                                        foreach(XmlNode flow_node in e_LVinRootNet.ChildNodes)
+                                        {
+                                            addProcessFlow(flow_node);
+                                        }
                                     }
-                                    #endregion
                                 }
                                 
                             }
                         }
-                        #region Functions
                         //others: functions
                         else
                         {
-
+                            addFunction(decomposition_node);
                         }
-                        #endregion
                     }
                 }
             }
@@ -265,6 +267,209 @@ namespace YAWL2Solidity_SCG
                 }
             }
             allModifiers.Add(m_temp);
+        }
+
+        void addProcessFlow(XmlNode flow_node)
+        {
+            Flow flow = new Flow();
+            if (flow_node.Name == "inputCondition" || flow_node.Name == "task")
+            {
+                XmlNode flow_id = flow_node.Attributes.GetNamedItem("id");
+                if (flow_id != null)
+                {
+                    flow.currentProcessName = flow_id.InnerXml;
+
+                    if (flow_node.GetType().Name == "XmlElement")
+                    {
+                        XmlElement e_flow_input = (XmlElement)flow_node;
+                        //flowsInto
+                        XmlNodeList next_nodes = e_flow_input.GetElementsByTagName("flowsInto");
+                        if (next_nodes != null)
+                        {
+                            foreach (XmlNode nextNode in next_nodes)
+                            {
+                                ToNextProcess nextProcess = new ToNextProcess();
+                                foreach (XmlNode flowInfo in nextNode.ChildNodes)
+                                {
+                                    if (flowInfo.Name == "nextElementRef")
+                                    {
+                                        nextProcess.processName = flowInfo.Attributes.GetNamedItem("id").InnerXml;
+                                    }
+                                    else if (flowInfo.Name == "predicate")
+                                    {
+                                        //TODO: this condition should be parse in more detailed.
+                                        string[] stringSeparators = new string[] { "/text()" };
+                                        string[] conditions = flowInfo.InnerText.Split(stringSeparators, StringSplitOptions.RemoveEmptyEntries);
+                                        if (conditions.Count() == 2)
+                                        {
+                                            string[] variables = conditions[0].Split('/');
+                                            //string[] operValue = conditions[1].Split('\'');
+                                            //"&lt;" represents "<", "&gt;" represents ">".
+                                            if (conditions[1].Contains("<="))// || conditions[1].Contains(">=")|| conditions[1].Contains("!="))
+                                            {
+                                                nextProcess.condition = generateCondition(variables.Last(), conditions[1], "<=");
+                                            }
+                                            else if (conditions[1].Contains(">="))
+                                            {
+                                                nextProcess.condition = generateCondition(variables.Last(), conditions[1], ">=");
+                                            }
+                                            else if (conditions[1].Contains("!="))
+                                            {
+                                                nextProcess.condition = generateCondition(variables.Last(), conditions[1], "!=");
+                                            }
+                                            else if (conditions[1].Contains("<"))
+                                            {
+                                                nextProcess.condition = generateCondition(variables.Last(), conditions[1], "<");
+                                            }
+                                            else if (conditions[1].Contains(">"))
+                                            {
+                                                nextProcess.condition = generateCondition(variables.Last(), conditions[1], ">");
+                                            }
+                                            else if (conditions[1].Contains("="))
+                                            {
+                                                nextProcess.condition = generateCondition(variables.Last(), conditions[1], "=");
+                                            }
+                                        }
+                                    }
+                                    else if (flowInfo.Name == "isDefaultFlow")
+                                    {
+                                        nextProcess.condition = "otherwise";
+                                    }
+                                }
+                                flow.nextProcesses.Add(nextProcess);
+                            }
+                            //split operation
+                            if (next_nodes.Count > 1)
+                            {
+                                XmlNode split_node = e_flow_input.GetElementsByTagName("split").Item(0);
+                                if (split_node != null)
+                                {
+                                    flow.splitOperation = split_node.Attributes.GetNamedItem("code").InnerXml;
+                                }
+                            }
+
+                        }
+                    }
+                    allFlows.Add(flow);
+                }
+            }
+        }
+
+        string generateCondition(string variableName, string fullCondition, string operation)
+        {
+            string result;
+            string[] op = new string[] { operation };
+            var value = fullCondition.Split(op, StringSplitOptions.RemoveEmptyEntries).Last();
+            if(value.Contains('\''))
+            {
+                value = value.Trim('\'', ' ');
+            }
+            var variable = allLocalVariables.Find(x => x.name == variableName);
+            if(variable!=null)
+            {
+                if (variable.type == "string")
+                {
+                    value = "\"" + value + "\"";
+                }
+                if(operation=="=")
+                {
+                    operation = "==";
+                }
+                result = variableName + " " + operation + " " + value;
+            }
+            else
+            {
+                result = "ERROR: undefined variable";
+            }
+
+            return result;
+        }
+
+        void addFunction(XmlNode decomposition_node)
+        {
+            Function function_temp = new Function();
+            function_temp.name = decomposition_node.Attributes.GetNamedItem("id").InnerXml;
+            var flow = allFlows.Find(x => x.currentProcessName == function_temp.name);
+            if (flow != null)
+            {
+                function_temp.nextProcess = flow;
+
+                
+                foreach(XmlNode para in decomposition_node.ChildNodes)
+                {
+                    if (para.GetType().Name == "XmlElement")
+                    {
+                        XmlElement e_para = (XmlElement)para;
+                        XmlNode paraType = e_para.GetElementsByTagName("type").Item(0);
+                        XmlNode paraName = e_para.GetElementsByTagName("name").Item(0);
+                        if(paraType != null && paraName != null)
+                        {
+                            //modifiers
+                            if(paraType.InnerText== "solidity_modifier")
+                            {
+                                var paraModif = allModifiers.Find(x => x.name == paraName.InnerText);
+                                if(!function_temp.modifiers.Contains(paraModif))
+                                {
+                                    XmlNode paraValue = e_para.GetElementsByTagName("defaultValue").Item(0);
+                                    if(paraValue!=null)
+                                    {
+                                        string valueStr = paraValue.InnerText;
+                                        if(valueStr.Contains(","))
+                                        {
+                                            //more than one variables in the modifier
+                                        }
+                                        else
+                                        {
+                                            paraModif.inputVaris[0].defaultVaule = valueStr;
+                                        }
+                                    }
+                                    function_temp.modifiers.Add(paraModif);
+                                }
+                            }
+                            //InputParam, outputParam and in/out
+                            else
+                            {
+                                var paraVari = allLocalVariables.Find(x => x.name == paraName.InnerText);
+                                if (paraVari != null)
+                                {
+                                    if (para.Name == "inputParam")
+                                    {
+                                        var findResult = function_temp.outputVariables.Find(x => x.name == paraName.InnerText);
+                                        if (findResult != null)
+                                        {
+                                            function_temp.outputVariables.Remove(findResult);
+                                            function_temp.inOutVariables.Add(findResult);
+                                        }
+                                        else
+                                        {
+                                            function_temp.inputVariables.Add(paraVari);
+                                        }
+
+                                    }
+                                    else if (para.Name == "outputParam")
+                                    {
+
+                                        var findResult = function_temp.inputVariables.Find(x => x.name == paraName.InnerText);
+                                        if (findResult != null)
+                                        {
+                                            function_temp.inputVariables.Remove(findResult);
+                                            function_temp.inOutVariables.Add(findResult);
+                                        }
+                                        else
+                                        {
+                                            function_temp.outputVariables.Add(paraVari);
+                                        }
+
+                                    }
+                                }
+                            }
+                        } 
+                        
+                    }
+                }
+
+            }
+            allFunctions.Add(function_temp);
         }
     }
 }

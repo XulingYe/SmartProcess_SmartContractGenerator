@@ -98,10 +98,72 @@ namespace YAWL2Solidity_SCG
                 modifier_node.Nodes.Add(modifier_yawl.condition);
                 modifier_node.Nodes.Add(modifier_yawl.errorString);
             }
+            //add flows
+            var flows_node = treeView_table.Nodes.Add("Process Flows");
+            flows_node.NodeFont = new Font("Arial", 9, FontStyle.Bold);
+            foreach (var flow in yAWLParser.allFlows)
+            {
+                var flow_node = flows_node.Nodes.Add(flow.currentProcessName);
+                flow_node.NodeFont = new Font("Arial", 9);
+                if(flow.nextProcesses.Count>0)
+                {
+                    foreach (var nextProcess in flow.nextProcesses)
+                    {
+                        var nextProcess_node = flow_node.Nodes.Add("Next process: "+nextProcess.processName);
+                        if(nextProcess.condition!=null)
+                        {
+                            nextProcess_node.Nodes.Add(nextProcess.condition);
+                        }
+                    }
+                }
+                if(flow.splitOperation!=null)
+                {
+                    flow_node.Nodes.Add(flow.splitOperation);
+                }
+            }
+
             //add functions
             var functions_node = treeView_table.Nodes.Add("Functions");
             functions_node.NodeFont = new Font("Arial", 9 , FontStyle.Bold);
-
+            foreach (var function in yAWLParser.allFunctions)
+            {
+                var function_node = functions_node.Nodes.Add(function.name);
+                function_node.NodeFont = new Font("Arial", 9);
+                //modifiers
+                var funmodifiers_node = function_node.Nodes.Add("Modifiers");
+                foreach (var funmodifier in function.modifiers)
+                {
+                    string funmodi_values = funmodifier.name + "(";
+                    for(int i = 0; i< funmodifier.inputVaris.Count(); i++)
+                    {
+                        if(i>0)
+                        {
+                            funmodi_values += ", ";
+                        }
+                        funmodi_values += funmodifier.inputVaris[i].defaultVaule;
+                    }
+                    funmodi_values += ")";
+                    funmodifiers_node.Nodes.Add(funmodi_values);
+                }
+                //inputs
+                var funinputs_node = function_node.Nodes.Add("Input variables");
+                foreach (var funinput in function.inputVariables)
+                {
+                    funinputs_node.Nodes.Add(funinput.name);
+                }
+                //outputs
+                var funonputs_node = function_node.Nodes.Add("Output variables");
+                foreach (var funonput in function.outputVariables)
+                {
+                    funonputs_node.Nodes.Add(funonput.name);
+                }
+                //inOutputs
+                var funinoutputs_node = function_node.Nodes.Add("In/output variables");
+                foreach (var funinoutput in function.inOutVariables)
+                {
+                    funinoutputs_node.Nodes.Add(funinoutput.name);
+                }
+            }
 
             treeView_table.EndUpdate();
         }
@@ -137,7 +199,6 @@ namespace YAWL2Solidity_SCG
             }
         }
 
-        private PictureBox pictureBox1 = new PictureBox();
         private void MainForm_SizeChanged(object sender, EventArgs e)
         {
             Auto_Size();
@@ -251,7 +312,12 @@ namespace YAWL2Solidity_SCG
 
         private void AutosizeTable(int width_table, int height_table)
         {
-            
+            int treeviewTable_width = (2*width_table) / 3 - 10;
+            this.treeView_table.Location = new Point(5, 25);
+            this.treeView_table.Size = new Size(treeviewTable_width, height_table - 30);
+
+            this.richTextBox_displayTable.Location = new Point(treeviewTable_width + 15, 25);
+            this.richTextBox_displayTable.Size = new Size(width_table - treeviewTable_width - 20, height_table - 30);
         }
 
 
@@ -266,9 +332,9 @@ namespace YAWL2Solidity_SCG
             
             //draw arrows
             Graphics g = CreateGraphics();
-            Pen p = new Pen(Brushes.DeepSkyBlue, 30);
+            Pen p = new Pen(Brushes.DeepSkyBlue, 20);
             p.StartCap = LineCap.ArrowAnchor;
-            g.Clear(Color.LightGray);
+            g.Clear(Color.WhiteSmoke);
             g.DrawLine(p, x1, y2, x1, y1);
             g.DrawLine(p, x3, y3, x2, y3);
             g.DrawLine(p, x5, y3, x4, y3);

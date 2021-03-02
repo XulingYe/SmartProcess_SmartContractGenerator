@@ -197,24 +197,24 @@ namespace YAWL2Solidity_SCG
             // 
             // richTextBox_displayTable
             // 
-            this.richTextBox_displayTable.Location = new System.Drawing.Point(357, 28);
+            this.richTextBox_displayTable.Location = new System.Drawing.Point(347, 28);
             this.richTextBox_displayTable.Name = "richTextBox_displayTable";
-            this.richTextBox_displayTable.Size = new System.Drawing.Size(278, 281);
+            this.richTextBox_displayTable.Size = new System.Drawing.Size(288, 295);
             this.richTextBox_displayTable.TabIndex = 9;
             this.richTextBox_displayTable.Text = "";
             // 
             // treeView_table
             // 
-            this.treeView_table.Location = new System.Drawing.Point(36, 28);
+            this.treeView_table.Location = new System.Drawing.Point(14, 28);
             this.treeView_table.Name = "treeView_table";
-            this.treeView_table.Size = new System.Drawing.Size(285, 281);
+            this.treeView_table.Size = new System.Drawing.Size(317, 295);
             this.treeView_table.TabIndex = 8;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.LightGray;
+            this.BackColor = System.Drawing.Color.WhiteSmoke;
             this.ClientSize = new System.Drawing.Size(1353, 668);
             this.Controls.Add(this.groupBox_table);
             this.Controls.Add(this.btn_fromTable2Solidity);
