@@ -1,0 +1,10 @@
+C:\Users\Xuling\Desktop\GitHub_Xuling\YAWL2Solidity_SCG\YAWL2Solidity_SCG\obj\Debug\Graphical2SmartContact_SCG.csprojAssemblyReference.cache
+C:\Users\Xuling\Desktop\GitHub_Xuling\YAWL2Solidity_SCG\YAWL2Solidity_SCG\obj\Debug\Graphical2SmartContact_SCG.MainForm.resources
+C:\Users\Xuling\Desktop\GitHub_Xuling\YAWL2Solidity_SCG\YAWL2Solidity_SCG\obj\Debug\YAWL2Solidity_SCG.Properties.Resources.resources
+C:\Users\Xuling\Desktop\GitHub_Xuling\YAWL2Solidity_SCG\YAWL2Solidity_SCG\obj\Debug\Graphical2SmartContact_SCG.csproj.GenerateResource.cache
+C:\Users\Xuling\Desktop\GitHub_Xuling\YAWL2Solidity_SCG\YAWL2Solidity_SCG\obj\Debug\Graphical2SmartContact_SCG.csproj.CoreCompileInputs.cache
+C:\Users\Xuling\Desktop\GitHub_Xuling\YAWL2Solidity_SCG\YAWL2Solidity_SCG\obj\Debug\YAWL2Solidity_SCG.exe
+C:\Users\Xuling\Desktop\GitHub_Xuling\YAWL2Solidity_SCG\YAWL2Solidity_SCG\obj\Debug\YAWL2Solidity_SCG.pdb
+C:\Users\Xuling\Desktop\GitHub_Xuling\YAWL2Solidity_SCG\YAWL2Solidity_SCG\bin\Debug\YAWL2Solidity_SCG.exe.config
+C:\Users\Xuling\Desktop\GitHub_Xuling\YAWL2Solidity_SCG\YAWL2Solidity_SCG\bin\Debug\YAWL2Solidity_SCG.exe
+C:\Users\Xuling\Desktop\GitHub_Xuling\YAWL2Solidity_SCG\YAWL2Solidity_SCG\bin\Debug\YAWL2Solidity_SCG.pdb

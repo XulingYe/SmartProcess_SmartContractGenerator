@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace YAWL2Solidity_SCG
+namespace Graphical2SmartContact_SCG
 {
     static class Program
     {
