@@ -49,6 +49,11 @@ namespace Graphical2SmartContact_SCG
                             isBPMN = true;
                             Auto_Size();
                         }
+                        else if(graphicalExtension == ".yawl")
+                        {
+                            isBPMN = false;
+                            Auto_Size();
+                        }
                         yAWLParser.parseGraphical(text,isBPMN);
                     }
                 }
@@ -103,7 +108,7 @@ namespace Graphical2SmartContact_SCG
             }
             else
             {
-                treeViewYAWLRoles_width = (width_yawl - 15) / 5;
+                treeViewYAWLRoles_width = (width_yawl - 15) / 4;
                 richBoxDisplayYAWL_width -= (treeViewYAWLRoles_width + 5);
 
                 this.btn_importYAWLRoles.Location = new Point(10 + richBoxDisplayYAWL_width, 25);
@@ -160,7 +165,7 @@ namespace Graphical2SmartContact_SCG
                 {
                     definedenum_node.Nodes.Add(definedenum.elements[i]);
                 }
-            }
+            }*/
             //add local variables
             var localVaris_node = treeView_table.Nodes.Add("Local Variables");
             localVaris_node.NodeFont = new Font("Arial", 9, FontStyle.Bold);
@@ -170,7 +175,7 @@ namespace Graphical2SmartContact_SCG
                 localvari_node.NodeFont = new Font("Arial", 9);
                 localvari_node.Nodes.Add("Type:" + localvari_yawl.type);
                 localvari_node.Nodes.Add("Value:" + localvari_yawl.defaultVaule);
-            }*/
+            }
             //add modifiers and flows
             var roles_node = treeView_table.Nodes.Add("Roles");
             roles_node.NodeFont = new Font("Arial", 9, FontStyle.Bold);

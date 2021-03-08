@@ -66,7 +66,15 @@ namespace Graphical2SmartContact_SCG
 
         public void parseGraphical(string text, bool isBPMN)
         {
-            if(!isBPMN)
+            //clear all previous data
+            allLocalVariables.Clear();
+            allDefinedEnums.Clear();
+            allFlows.Clear();
+            allFunctions.Clear();
+            allModifiers.Clear();
+            allRoles.Clear();
+
+            if (!isBPMN)
             {
                 parseYawl(text);
             }
@@ -81,13 +89,6 @@ namespace Graphical2SmartContact_SCG
         #region YAWL
         void parseYawl(string text)
         {
-            //clear all previous data
-            allLocalVariables.Clear();
-            allDefinedEnums.Clear();
-            allFlows.Clear();
-            allFunctions.Clear();
-            allModifiers.Clear();
-
             //parse YAWL
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(text);
