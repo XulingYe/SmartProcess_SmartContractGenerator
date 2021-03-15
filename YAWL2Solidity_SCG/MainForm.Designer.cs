@@ -29,94 +29,102 @@ namespace Graphical2SmartContact_SCG
         /// </summary>
         private void InitializeComponent()
         {
-            this.btn_importYAWL = new System.Windows.Forms.Button();
-            this.btn_fromYAWL2Table = new System.Windows.Forms.Button();
-            this.btn_exportSolidity = new System.Windows.Forms.Button();
-            this.textBox_SolidityExportedPath = new System.Windows.Forms.TextBox();
-            this.textBox_YAWLImportedPath = new System.Windows.Forms.TextBox();
-            this.groupBox_yawl = new System.Windows.Forms.GroupBox();
-            this.btn_importYAWLRoles = new System.Windows.Forms.Button();
-            this.richTextBox_displayYAWL = new System.Windows.Forms.RichTextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.groupBox_solidity = new System.Windows.Forms.GroupBox();
-            this.richTextBox_displaySolidity = new System.Windows.Forms.RichTextBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.btn_fromTable2Solidity = new System.Windows.Forms.Button();
-            this.label3 = new System.Windows.Forms.Label();
-            this.groupBox_table = new System.Windows.Forms.GroupBox();
-            this.treeView_table = new System.Windows.Forms.TreeView();
+            this.btn_importGraphical = new System.Windows.Forms.Button();
+            this.btn_fromGraphical2Checking = new System.Windows.Forms.Button();
+            this.btn_exportSC = new System.Windows.Forms.Button();
+            this.textBox_SCExportedPath = new System.Windows.Forms.TextBox();
+            this.textBox_GraphicalImportedPath = new System.Windows.Forms.TextBox();
+            this.groupBox_graphical = new System.Windows.Forms.GroupBox();
             this.treeView_displayYAWLRoles = new System.Windows.Forms.TreeView();
-            this.groupBox_yawl.SuspendLayout();
-            this.groupBox_solidity.SuspendLayout();
-            this.groupBox_table.SuspendLayout();
+            this.btn_importYAWLRoles = new System.Windows.Forms.Button();
+            this.richTextBox_displayGraphical = new System.Windows.Forms.RichTextBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.groupBox_SC = new System.Windows.Forms.GroupBox();
+            this.treeView_SCfileTree = new System.Windows.Forms.TreeView();
+            this.richTextBox_displaySC = new System.Windows.Forms.RichTextBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.btn_fromChecking2SC = new System.Windows.Forms.Button();
+            this.label3 = new System.Windows.Forms.Label();
+            this.groupBox_checking = new System.Windows.Forms.GroupBox();
+            this.treeView_Checking = new System.Windows.Forms.TreeView();
+            this.groupBox_graphical.SuspendLayout();
+            this.groupBox_SC.SuspendLayout();
+            this.groupBox_checking.SuspendLayout();
             this.SuspendLayout();
             // 
-            // btn_importYAWL
+            // btn_importGraphical
             // 
-            this.btn_importYAWL.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_importYAWL.Location = new System.Drawing.Point(6, 26);
-            this.btn_importYAWL.Name = "btn_importYAWL";
-            this.btn_importYAWL.Size = new System.Drawing.Size(100, 30);
-            this.btn_importYAWL.TabIndex = 0;
-            this.btn_importYAWL.Text = "Import";
-            this.btn_importYAWL.UseVisualStyleBackColor = true;
-            this.btn_importYAWL.Click += new System.EventHandler(this.btn_importYAWL_Click);
+            this.btn_importGraphical.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_importGraphical.Location = new System.Drawing.Point(6, 26);
+            this.btn_importGraphical.Name = "btn_importGraphical";
+            this.btn_importGraphical.Size = new System.Drawing.Size(100, 30);
+            this.btn_importGraphical.TabIndex = 0;
+            this.btn_importGraphical.Text = "Import";
+            this.btn_importGraphical.UseVisualStyleBackColor = true;
+            this.btn_importGraphical.Click += new System.EventHandler(this.btn_importGraphical_Click);
             // 
-            // btn_fromYAWL2Table
+            // btn_fromGraphical2Checking
             // 
-            this.btn_fromYAWL2Table.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_fromYAWL2Table.Location = new System.Drawing.Point(667, 122);
-            this.btn_fromYAWL2Table.Name = "btn_fromYAWL2Table";
-            this.btn_fromYAWL2Table.Size = new System.Drawing.Size(160, 75);
-            this.btn_fromYAWL2Table.TabIndex = 2;
-            this.btn_fromYAWL2Table.Text = "From Graphical \r\nto Checking\r\n======>";
-            this.btn_fromYAWL2Table.UseVisualStyleBackColor = true;
-            this.btn_fromYAWL2Table.Click += new System.EventHandler(this.btn_fromYAWL2Table_Click);
+            this.btn_fromGraphical2Checking.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_fromGraphical2Checking.Location = new System.Drawing.Point(667, 122);
+            this.btn_fromGraphical2Checking.Name = "btn_fromGraphical2Checking";
+            this.btn_fromGraphical2Checking.Size = new System.Drawing.Size(160, 75);
+            this.btn_fromGraphical2Checking.TabIndex = 2;
+            this.btn_fromGraphical2Checking.Text = "From Graphical \r\nto Checking\r\n======>";
+            this.btn_fromGraphical2Checking.UseVisualStyleBackColor = true;
+            this.btn_fromGraphical2Checking.Click += new System.EventHandler(this.btn_fromGraphical2Checking_Click);
             // 
-            // btn_exportSolidity
+            // btn_exportSC
             // 
-            this.btn_exportSolidity.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btn_exportSolidity.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_exportSolidity.Location = new System.Drawing.Point(10, 275);
-            this.btn_exportSolidity.Name = "btn_exportSolidity";
-            this.btn_exportSolidity.Size = new System.Drawing.Size(110, 30);
-            this.btn_exportSolidity.TabIndex = 4;
-            this.btn_exportSolidity.Text = "Export";
-            this.btn_exportSolidity.UseVisualStyleBackColor = true;
-            this.btn_exportSolidity.Click += new System.EventHandler(this.btn_exportSolidity_Click);
+            this.btn_exportSC.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btn_exportSC.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_exportSC.Location = new System.Drawing.Point(10, 275);
+            this.btn_exportSC.Name = "btn_exportSC";
+            this.btn_exportSC.Size = new System.Drawing.Size(110, 30);
+            this.btn_exportSC.TabIndex = 4;
+            this.btn_exportSC.Text = "Export";
+            this.btn_exportSC.UseVisualStyleBackColor = true;
+            this.btn_exportSC.Click += new System.EventHandler(this.btn_exportSolidity_Click);
             // 
-            // textBox_SolidityExportedPath
+            // textBox_SCExportedPath
             // 
-            this.textBox_SolidityExportedPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.textBox_SCExportedPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox_SolidityExportedPath.Location = new System.Drawing.Point(123, 279);
-            this.textBox_SolidityExportedPath.Name = "textBox_SolidityExportedPath";
-            this.textBox_SolidityExportedPath.Size = new System.Drawing.Size(527, 22);
-            this.textBox_SolidityExportedPath.TabIndex = 5;
+            this.textBox_SCExportedPath.Location = new System.Drawing.Point(123, 279);
+            this.textBox_SCExportedPath.Name = "textBox_SCExportedPath";
+            this.textBox_SCExportedPath.Size = new System.Drawing.Size(527, 22);
+            this.textBox_SCExportedPath.TabIndex = 5;
             // 
-            // textBox_YAWLImportedPath
+            // textBox_GraphicalImportedPath
             // 
-            this.textBox_YAWLImportedPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.textBox_GraphicalImportedPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox_YAWLImportedPath.Location = new System.Drawing.Point(112, 30);
-            this.textBox_YAWLImportedPath.Name = "textBox_YAWLImportedPath";
-            this.textBox_YAWLImportedPath.Size = new System.Drawing.Size(408, 22);
-            this.textBox_YAWLImportedPath.TabIndex = 6;
+            this.textBox_GraphicalImportedPath.Location = new System.Drawing.Point(112, 30);
+            this.textBox_GraphicalImportedPath.Name = "textBox_GraphicalImportedPath";
+            this.textBox_GraphicalImportedPath.Size = new System.Drawing.Size(408, 22);
+            this.textBox_GraphicalImportedPath.TabIndex = 6;
             // 
-            // groupBox_yawl
+            // groupBox_graphical
             // 
-            this.groupBox_yawl.Controls.Add(this.treeView_displayYAWLRoles);
-            this.groupBox_yawl.Controls.Add(this.btn_importYAWLRoles);
-            this.groupBox_yawl.Controls.Add(this.richTextBox_displayYAWL);
-            this.groupBox_yawl.Controls.Add(this.label2);
-            this.groupBox_yawl.Controls.Add(this.btn_importYAWL);
-            this.groupBox_yawl.Controls.Add(this.textBox_YAWLImportedPath);
-            this.groupBox_yawl.Location = new System.Drawing.Point(0, 0);
-            this.groupBox_yawl.Name = "groupBox_yawl";
-            this.groupBox_yawl.Size = new System.Drawing.Size(661, 329);
-            this.groupBox_yawl.TabIndex = 8;
-            this.groupBox_yawl.TabStop = false;
-            this.groupBox_yawl.Text = "YAWL";
+            this.groupBox_graphical.Controls.Add(this.treeView_displayYAWLRoles);
+            this.groupBox_graphical.Controls.Add(this.btn_importYAWLRoles);
+            this.groupBox_graphical.Controls.Add(this.richTextBox_displayGraphical);
+            this.groupBox_graphical.Controls.Add(this.label2);
+            this.groupBox_graphical.Controls.Add(this.btn_importGraphical);
+            this.groupBox_graphical.Controls.Add(this.textBox_GraphicalImportedPath);
+            this.groupBox_graphical.Location = new System.Drawing.Point(0, 0);
+            this.groupBox_graphical.Name = "groupBox_graphical";
+            this.groupBox_graphical.Size = new System.Drawing.Size(661, 329);
+            this.groupBox_graphical.TabIndex = 8;
+            this.groupBox_graphical.TabStop = false;
+            this.groupBox_graphical.Text = "YAWL";
+            // 
+            // treeView_displayYAWLRoles
+            // 
+            this.treeView_displayYAWLRoles.Location = new System.Drawing.Point(526, 66);
+            this.treeView_displayYAWLRoles.Name = "treeView_displayYAWLRoles";
+            this.treeView_displayYAWLRoles.Size = new System.Drawing.Size(129, 257);
+            this.treeView_displayYAWLRoles.TabIndex = 11;
             // 
             // btn_importYAWLRoles
             // 
@@ -129,13 +137,13 @@ namespace Graphical2SmartContact_SCG
             this.btn_importYAWLRoles.UseVisualStyleBackColor = true;
             this.btn_importYAWLRoles.Click += new System.EventHandler(this.btn_importYAWLRoles_Click);
             // 
-            // richTextBox_displayYAWL
+            // richTextBox_displayGraphical
             // 
-            this.richTextBox_displayYAWL.Location = new System.Drawing.Point(5, 66);
-            this.richTextBox_displayYAWL.Name = "richTextBox_displayYAWL";
-            this.richTextBox_displayYAWL.Size = new System.Drawing.Size(515, 257);
-            this.richTextBox_displayYAWL.TabIndex = 8;
-            this.richTextBox_displayYAWL.Text = "";
+            this.richTextBox_displayGraphical.Location = new System.Drawing.Point(5, 66);
+            this.richTextBox_displayGraphical.Name = "richTextBox_displayGraphical";
+            this.richTextBox_displayGraphical.Size = new System.Drawing.Size(515, 257);
+            this.richTextBox_displayGraphical.TabIndex = 8;
+            this.richTextBox_displayGraphical.Text = "";
             // 
             // label2
             // 
@@ -147,26 +155,35 @@ namespace Graphical2SmartContact_SCG
             this.label2.TabIndex = 7;
             this.label2.Text = "Graphical representation";
             // 
-            // groupBox_solidity
+            // groupBox_SC
             // 
-            this.groupBox_solidity.Controls.Add(this.richTextBox_displaySolidity);
-            this.groupBox_solidity.Controls.Add(this.label1);
-            this.groupBox_solidity.Controls.Add(this.btn_exportSolidity);
-            this.groupBox_solidity.Controls.Add(this.textBox_SolidityExportedPath);
-            this.groupBox_solidity.Location = new System.Drawing.Point(5, 335);
-            this.groupBox_solidity.Name = "groupBox_solidity";
-            this.groupBox_solidity.Size = new System.Drawing.Size(656, 311);
-            this.groupBox_solidity.TabIndex = 9;
-            this.groupBox_solidity.TabStop = false;
-            this.groupBox_solidity.Text = "Solidity";
+            this.groupBox_SC.Controls.Add(this.treeView_SCfileTree);
+            this.groupBox_SC.Controls.Add(this.richTextBox_displaySC);
+            this.groupBox_SC.Controls.Add(this.label1);
+            this.groupBox_SC.Controls.Add(this.btn_exportSC);
+            this.groupBox_SC.Controls.Add(this.textBox_SCExportedPath);
+            this.groupBox_SC.Location = new System.Drawing.Point(5, 335);
+            this.groupBox_SC.Name = "groupBox_SC";
+            this.groupBox_SC.Size = new System.Drawing.Size(656, 311);
+            this.groupBox_SC.TabIndex = 9;
+            this.groupBox_SC.TabStop = false;
+            this.groupBox_SC.Text = "Solidity";
             // 
-            // richTextBox_displaySolidity
+            // treeView_SCfileTree
             // 
-            this.richTextBox_displaySolidity.Location = new System.Drawing.Point(6, 20);
-            this.richTextBox_displaySolidity.Name = "richTextBox_displaySolidity";
-            this.richTextBox_displaySolidity.Size = new System.Drawing.Size(642, 245);
-            this.richTextBox_displaySolidity.TabIndex = 9;
-            this.richTextBox_displaySolidity.Text = "";
+            this.treeView_SCfileTree.Location = new System.Drawing.Point(6, 21);
+            this.treeView_SCfileTree.Name = "treeView_SCfileTree";
+            this.treeView_SCfileTree.Size = new System.Drawing.Size(95, 248);
+            this.treeView_SCfileTree.TabIndex = 12;
+            this.treeView_SCfileTree.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.treeView_SCfileTree_NodeMouseClick);
+            // 
+            // richTextBox_displaySC
+            // 
+            this.richTextBox_displaySC.Location = new System.Drawing.Point(107, 20);
+            this.richTextBox_displaySC.Name = "richTextBox_displaySC";
+            this.richTextBox_displaySC.Size = new System.Drawing.Size(541, 253);
+            this.richTextBox_displaySC.TabIndex = 9;
+            this.richTextBox_displaySC.Text = "";
             // 
             // label1
             // 
@@ -178,16 +195,16 @@ namespace Graphical2SmartContact_SCG
             this.label1.TabIndex = 6;
             this.label1.Text = "Smart Contract Langauge";
             // 
-            // btn_fromTable2Solidity
+            // btn_fromChecking2SC
             // 
-            this.btn_fromTable2Solidity.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_fromTable2Solidity.Location = new System.Drawing.Point(667, 440);
-            this.btn_fromTable2Solidity.Name = "btn_fromTable2Solidity";
-            this.btn_fromTable2Solidity.Size = new System.Drawing.Size(160, 80);
-            this.btn_fromTable2Solidity.TabIndex = 10;
-            this.btn_fromTable2Solidity.Text = "From Checking \r\nto Smart Contract\r\n<======";
-            this.btn_fromTable2Solidity.UseVisualStyleBackColor = true;
-            this.btn_fromTable2Solidity.Click += new System.EventHandler(this.btn_fromTable2Solidity_Click);
+            this.btn_fromChecking2SC.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_fromChecking2SC.Location = new System.Drawing.Point(667, 440);
+            this.btn_fromChecking2SC.Name = "btn_fromChecking2SC";
+            this.btn_fromChecking2SC.Size = new System.Drawing.Size(160, 80);
+            this.btn_fromChecking2SC.TabIndex = 10;
+            this.btn_fromChecking2SC.Text = "From Checking \r\nto Smart Contract\r\n<======";
+            this.btn_fromChecking2SC.UseVisualStyleBackColor = true;
+            this.btn_fromChecking2SC.Click += new System.EventHandler(this.btn_fromChecking2SC_Click);
             // 
             // label3
             // 
@@ -199,30 +216,23 @@ namespace Graphical2SmartContact_SCG
             this.label3.TabIndex = 7;
             this.label3.Text = "Content checking";
             // 
-            // groupBox_table
+            // groupBox_checking
             // 
-            this.groupBox_table.Controls.Add(this.treeView_table);
-            this.groupBox_table.Controls.Add(this.label3);
-            this.groupBox_table.Location = new System.Drawing.Point(832, 2);
-            this.groupBox_table.Name = "groupBox_table";
-            this.groupBox_table.Size = new System.Drawing.Size(370, 644);
-            this.groupBox_table.TabIndex = 9;
-            this.groupBox_table.TabStop = false;
-            this.groupBox_table.Text = "Table";
+            this.groupBox_checking.Controls.Add(this.treeView_Checking);
+            this.groupBox_checking.Controls.Add(this.label3);
+            this.groupBox_checking.Location = new System.Drawing.Point(832, 2);
+            this.groupBox_checking.Name = "groupBox_checking";
+            this.groupBox_checking.Size = new System.Drawing.Size(370, 644);
+            this.groupBox_checking.TabIndex = 9;
+            this.groupBox_checking.TabStop = false;
+            this.groupBox_checking.Text = "Table";
             // 
-            // treeView_table
+            // treeView_Checking
             // 
-            this.treeView_table.Location = new System.Drawing.Point(14, 28);
-            this.treeView_table.Name = "treeView_table";
-            this.treeView_table.Size = new System.Drawing.Size(350, 606);
-            this.treeView_table.TabIndex = 8;
-            // 
-            // treeView_displayYAWLRoles
-            // 
-            this.treeView_displayYAWLRoles.Location = new System.Drawing.Point(526, 66);
-            this.treeView_displayYAWLRoles.Name = "treeView_displayYAWLRoles";
-            this.treeView_displayYAWLRoles.Size = new System.Drawing.Size(129, 257);
-            this.treeView_displayYAWLRoles.TabIndex = 11;
+            this.treeView_Checking.Location = new System.Drawing.Point(14, 28);
+            this.treeView_Checking.Name = "treeView_Checking";
+            this.treeView_Checking.Size = new System.Drawing.Size(350, 606);
+            this.treeView_Checking.TabIndex = 8;
             // 
             // MainForm
             // 
@@ -230,43 +240,44 @@ namespace Graphical2SmartContact_SCG
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.WhiteSmoke;
             this.ClientSize = new System.Drawing.Size(1209, 651);
-            this.Controls.Add(this.groupBox_table);
-            this.Controls.Add(this.btn_fromTable2Solidity);
-            this.Controls.Add(this.btn_fromYAWL2Table);
-            this.Controls.Add(this.groupBox_solidity);
-            this.Controls.Add(this.groupBox_yawl);
+            this.Controls.Add(this.groupBox_checking);
+            this.Controls.Add(this.btn_fromChecking2SC);
+            this.Controls.Add(this.btn_fromGraphical2Checking);
+            this.Controls.Add(this.groupBox_SC);
+            this.Controls.Add(this.groupBox_graphical);
             this.Name = "MainForm";
             this.Text = "Smart Contract Generator";
             this.SizeChanged += new System.EventHandler(this.MainForm_SizeChanged);
-            this.groupBox_yawl.ResumeLayout(false);
-            this.groupBox_yawl.PerformLayout();
-            this.groupBox_solidity.ResumeLayout(false);
-            this.groupBox_solidity.PerformLayout();
-            this.groupBox_table.ResumeLayout(false);
-            this.groupBox_table.PerformLayout();
+            this.groupBox_graphical.ResumeLayout(false);
+            this.groupBox_graphical.PerformLayout();
+            this.groupBox_SC.ResumeLayout(false);
+            this.groupBox_SC.PerformLayout();
+            this.groupBox_checking.ResumeLayout(false);
+            this.groupBox_checking.PerformLayout();
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.Button btn_importYAWL;
-        private System.Windows.Forms.Button btn_fromYAWL2Table;
-        private System.Windows.Forms.Button btn_exportSolidity;
-        private System.Windows.Forms.TextBox textBox_SolidityExportedPath;
-        private System.Windows.Forms.TextBox textBox_YAWLImportedPath;
-        private System.Windows.Forms.GroupBox groupBox_yawl;
-        private System.Windows.Forms.GroupBox groupBox_solidity;
+        private System.Windows.Forms.Button btn_importGraphical;
+        private System.Windows.Forms.Button btn_fromGraphical2Checking;
+        private System.Windows.Forms.Button btn_exportSC;
+        private System.Windows.Forms.TextBox textBox_SCExportedPath;
+        private System.Windows.Forms.TextBox textBox_GraphicalImportedPath;
+        private System.Windows.Forms.GroupBox groupBox_graphical;
+        private System.Windows.Forms.GroupBox groupBox_SC;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Button btn_fromTable2Solidity;
-        private System.Windows.Forms.RichTextBox richTextBox_displayYAWL;
-        private System.Windows.Forms.RichTextBox richTextBox_displaySolidity;
+        private System.Windows.Forms.Button btn_fromChecking2SC;
+        private System.Windows.Forms.RichTextBox richTextBox_displayGraphical;
+        private System.Windows.Forms.RichTextBox richTextBox_displaySC;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.GroupBox groupBox_table;
-        private System.Windows.Forms.TreeView treeView_table;
+        private System.Windows.Forms.GroupBox groupBox_checking;
+        private System.Windows.Forms.TreeView treeView_Checking;
         private System.Windows.Forms.Button btn_importYAWLRoles;
         private System.Windows.Forms.TreeView treeView_displayYAWLRoles;
+        private System.Windows.Forms.TreeView treeView_SCfileTree;
     }
 }
 

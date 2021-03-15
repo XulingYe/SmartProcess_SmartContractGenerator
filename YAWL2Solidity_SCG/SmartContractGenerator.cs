@@ -3,85 +3,123 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Graphical2SmartContact_SCG.GraphicalParser;
 
 namespace Graphical2SmartContact_SCG
 {
     public class SmartContractGenerator
     {
-        public string solidityAllText = "";
-        public string solidityFileName = "default";
-
-        public string generateSolidityText(GraphicalParser yAWL)
+        public class SolidityFile
         {
-            
-            solidityFileName = yAWL.fileName;
-            solidityAllText = "pragma solidity >=0.4.22 <0.9.0;\n";
-            solidityAllText += "contract " + yAWL.fileName + "{\n";
+            public string contractName = "";
+            public string fileAllText = "pragma solidity >=0.4.22 <0.9.0;\n\n";
+        };
+
+        public List<SolidityFile> allSolidityFiles = new List<SolidityFile>();
+
+        /*public string solidityAllText = "";
+        public string solidityProcessFlowAllText = "";
+        public string SolidityMainContractName = "default";*/
+
+        public void generateSolidityText(GraphicalParser graphicalP)
+        {
+            allSolidityFiles.Clear();
+
+            SolidityFile sFile = new SolidityFile();
+            sFile.contractName = graphicalP.fileName;
+
+            string SolidityProcessFlowContractName = "SCProcessFlow";
+            sFile.fileAllText += "import \"./" + SolidityProcessFlowContractName + ".sol\";\n\n";
+            generateSolidityProcessFlow(graphicalP.allFlows, SolidityProcessFlowContractName);
+
+            sFile.fileAllText += "contract " + graphicalP.fileName + " is " + SolidityProcessFlowContractName + "{\n";
 
             //enums
-            solidityAllText += "//Data type definition\n";
-            foreach (var enum_yawl in yAWL.allDefinedEnums)
+            sFile.fileAllText += "//Data type definition\n";
+            foreach (var enum_graphical in graphicalP.allDefinedEnums)
             {
-                solidityAllText += "    enum " + enum_yawl.name + " { ";
-                for(int i = 0; i < enum_yawl.elements.Count; i++)
+                sFile.fileAllText += "    enum " + enum_graphical.name + " { ";
+                for(int i = 0; i < enum_graphical.elements.Count; i++)
                 {
                     if(i>0)
                     {
-                        solidityAllText += ", ";
+                        sFile.fileAllText += ", ";
                     }
-                    solidityAllText += enum_yawl.elements[i];
+                    sFile.fileAllText += enum_graphical.elements[i];
                 }
-                solidityAllText += " }\n";
+                sFile.fileAllText += " }\n";
             }
 
             //state variables
-            solidityAllText += "\n//Defined state variables\n";
-            foreach (var localvari_yawl in yAWL.allLocalVariables)
+            sFile.fileAllText += "\n//Defined state variables\n";
+            foreach (var localvari_graphical in graphicalP.allLocalVariables)
             {
-                solidityAllText += "    " + localvari_yawl.type + " "/*" public "*/ + localvari_yawl.name;
-                if(localvari_yawl.defaultVaule != "" && localvari_yawl.defaultVaule != "0")
+                sFile.fileAllText += "    " + localvari_graphical.type + " "/*" public "*/ + localvari_graphical.name;
+                if (localvari_graphical.defaultVaule != null && localvari_graphical.defaultVaule != "" 
+                    && localvari_graphical.defaultVaule != "0")
                 {
-                    solidityAllText += " = " + localvari_yawl.defaultVaule; 
+                    sFile.fileAllText += " = " + localvari_graphical.defaultVaule; 
                 }
-                solidityAllText += ";\n";
+                sFile.fileAllText += ";\n";
             }
 
             //modifiers
-            solidityAllText += "\n//Modifiers\n";
-            foreach (var modifier_yawl in yAWL.allModifiers)
+            sFile.fileAllText += "\n//Modifiers\n";
+            foreach (var modifier_graphical in graphicalP.allModifiers)
             {
-                solidityAllText += "    modifier " + modifier_yawl.name + "(";
-                if(modifier_yawl.inputVaris.Count>0)
+                sFile.fileAllText += "    modifier " + modifier_graphical.name + "(";
+                if(modifier_graphical.inputVaris.Count>0)
                 {
-                    for(int i = 0; i < modifier_yawl.inputVaris.Count; i++)
+                    for(int i = 0; i < modifier_graphical.inputVaris.Count; i++)
                     {
                         if(i>0)
                         {
-                            solidityAllText += ", ";
+                            sFile.fileAllText += ", ";
                         }
-                        solidityAllText += modifier_yawl.inputVaris[i].type + " " + modifier_yawl.inputVaris[i].name;
+                        sFile.fileAllText += modifier_graphical.inputVaris[i].type 
+                            + " " + modifier_graphical.inputVaris[i].name;
                     }
                 }
 
-                solidityAllText += "){\n        require(\n          " + modifier_yawl.condition
-                    +",\n           \"" + modifier_yawl.errorString + "\"\n"
+                sFile.fileAllText += "){\n        require(\n          " + modifier_graphical.condition
+                    +",\n           \"" + modifier_graphical.errorString + "\"\n"
                     + "         );\n        _;\n    }\n";
             }
 
+            //functions
+            sFile.fileAllText += "\n//Functions\n";
+            foreach (var function_yawl in graphicalP.allFunctions)
+            {
+                sFile.fileAllText += addSolidityFunction(function_yawl, graphicalP.allLocalVariables);
+            }
+
+
+            sFile.fileAllText += "}";
+
+            allSolidityFiles.Add(sFile);
+        }
+
+        void generateSolidityProcessFlow(List<Flow> allFlows, string contractName)
+        {
+            SolidityFile file = new SolidityFile();
+            file.contractName = contractName;
+            
+            file.fileAllText += "contract " + contractName + "{\n";
+
             //Automated generated process state based on process flows
-            solidityAllText += "\n//Automated generated process state based on process flows\n";
-            solidityAllText += "    enum ProcessFlow { ";
+            file.fileAllText += "\n//Automated generated process state based on process flows\n";
+            file.fileAllText += "    enum ProcessFlow { ";
             int count = 0;
             string initailValue = "";
-            foreach (var flow in  yAWL.allFlows)
+            foreach (var flow in allFlows)
             {
                 if (count > 0)
                 {
-                    solidityAllText += ", ";
+                    file.fileAllText += ", ";
                 }
                 if (flow.currentProcessName != "InputCondition")
                 {
-                    solidityAllText += "To" + flow.currentProcessName;
+                    file.fileAllText += "To" + flow.currentProcessName;
                     count++;
                 }
                 else
@@ -89,145 +127,232 @@ namespace Graphical2SmartContact_SCG
                     initailValue = "ProcessFlow.To" + flow.nextProcesses[0].processName;
                 }
             }
-            solidityAllText += " }\n\n";
-            solidityAllText += "    ProcessFlow processFlow = " + initailValue + ";\n\n";
+            file.fileAllText += " }\n\n";
+
+            //current process flow
+            file.fileAllText += "    ProcessFlow[] currentProcessFlows;\n\n";// = " + initailValue + ";\n\n";
+
             //process flow modifier
-            solidityAllText += "    modifier inProcessFlow(ProcessFlow _processFlow){\n"
-                    + "        require(\n          processFlow == _processFlow,\n"
-                    + "           \"Invalid state of the process flow.\"\n"
-                    + "         );\n        _;\n    }\n";
+            file.fileAllText += "    modifier inProcessFlow(ProcessFlow _processFlow){\n"
+                    + "        for(uint i=0; i<currentProcessFlows.length; i++)\n        {\n"
+                    + "           if(currentProcessFlows[i] == _processFlow)\n           {\n"
+                    + "             _;\n             return;\n           }\n        }\n        "
+                    + "revert(\"Invalid state of the process flow. Please check by getCurrentProcessState().\");\n    }\n\n";
+            
+            //contractor
+            file.fileAllText += "    constructor()\n    {\n"
+                    + "        currentProcessFlows.push(" + initailValue + ");\n    }\n\n";
+            
+            //getCurrentProcessState() function
+            file.fileAllText += "    function getCurrentProcessState()\n        public\n"
+                    + "        returns(ProcessFlow[] memory)\n    {\n"
+                    + "        return currentProcessFlows;\n    }\n\n";
 
+            //deleteFlow(ProcessFlow) function
+            file.fileAllText += "    function deleteFlow(ProcessFlow _processFlow)\n        internal\n"
+                    + "    {\n        for(uint i=0; i<currentProcessFlows.length; i++)\n        {\n"
+                    + "            if(currentProcessFlows[i] == _processFlow)\n            {\n                "
+                    + "currentProcessFlows[i] = currentProcessFlows[currentProcessFlows.length-1];\n"
+                    + "                currentProcessFlows.pop();\n            }\n        }\n    }\n\n";
 
+            file.fileAllText += "}\n";
 
+            allSolidityFiles.Add(file);
+        }
 
-            //functions
-            solidityAllText += "\n//Functions\n";
-            foreach (var function_yawl in yAWL.allFunctions)
+        string addSolidityFunction(Function function,List<Variable> loclaVariables)
+        {
+            string function_text = "";
+
+            function_text += "    function " + function.name + "(";
+            int countInputVaris = 0;
+            //input parameters
+            foreach (var inputVari in function.inputVariables)
             {
-                solidityAllText += "    function " + function_yawl.name + "(";
-                int countInputVaris = 0;
-                //input parameters
-                foreach(var inputVari in function_yawl.inputVariables)
+                if (countInputVaris > 0)
                 {
-                    if (countInputVaris > 0)
+                    function_text += ", ";
+                }
+                if (inputVari.type == "string")
+                {
+                    function_text += inputVari.type + " memory _" + inputVari.name;
+                }
+                else
+                {
+                    function_text += inputVari.type + " _" + inputVari.name;
+                }
+                countInputVaris++;
+            }
+            //in/output variables for input
+            foreach (var inOutputVari in function.inOutVariables)
+            {
+                if (countInputVaris > 0)
+                {
+                    function_text += ", ";
+                }
+                if (inOutputVari.type == "string")
+                {
+                    function_text += inOutputVari.type + " memory " + inOutputVari.name;
+                }
+                else
+                {
+                    function_text += inOutputVari.type + inOutputVari.name;
+                }
+                countInputVaris++;
+            }
+            function_text += ")\n        public\n";
+            if (function.inputVariables.Count == 0)
+            {
+                function_text += "        view\n";
+            }
+            //modifiers
+            foreach (var modifi in function.modifiers)
+            {
+                function_text += "        " + modifi.name + "(";
+                for (int i = 0; i < modifi.inputVaris.Count; i++)
+                {
+                    if (i > 0)
                     {
-                        solidityAllText += ", ";
+                        function_text += ",";
                     }
-                    if(inputVari.type=="string")
+                    function_text += modifi.inputVaris[i].defaultVaule;
+                }
+                function_text += ")\n";
+            }
+            function_text += "        inProcessFlow(ProcessFlow.To" + function.name + ")\n";
+            //return parameters
+            if (function.outputVariables.Count > 0)
+            {
+                function_text += "        returns (";
+                int countOutputVaris = 0;
+                foreach (var outputVari in function.outputVariables)
+                {
+                    if (countOutputVaris > 0)
                     {
-                        solidityAllText += inputVari.type + " memory _" + inputVari.name;
+                        function_text += ",";
+                    }
+                    if (outputVari.type == "string")
+                    {
+                        function_text += outputVari.type + " memory _" + outputVari.name;
                     }
                     else
                     {
-                        solidityAllText += inputVari.type + " _" + inputVari.name;
+                        function_text += outputVari.type + " _" + outputVari.name;
                     }
-                    countInputVaris++;
+
+                    countOutputVaris++;
                 }
-                //in/output variables for input
-                foreach (var inOutputVari in function_yawl.inOutVariables)
+                //in/output variables for output
+                foreach (var inOutputVari in function.inOutVariables)
                 {
-                    if (countInputVaris > 0)
+                    if (countOutputVaris > 0)
                     {
-                        solidityAllText += ", ";
+                        function_text += ", ";
                     }
                     if (inOutputVari.type == "string")
                     {
-                        solidityAllText += inOutputVari.type + " memory " + inOutputVari.name;
+                        function_text += inOutputVari.type + " memory " + inOutputVari.name;
                     }
                     else
                     {
-                        solidityAllText += inOutputVari.type + inOutputVari.name;
+                        function_text += inOutputVari.type + " " + inOutputVari.name;
                     }
-                    countInputVaris++;
-                }
-                solidityAllText += ")\n        public\n";
-                //modifiers
-                foreach (var modifi in function_yawl.modifiers)
-                {
-                    solidityAllText += "        "+ modifi.name + "(";
-                    for (int i = 0; i < modifi.inputVaris.Count; i++)
-                    {
-                        if (i > 0)
-                        {
-                            solidityAllText += ",";
-                        }
-                        solidityAllText += modifi.inputVaris[i].defaultVaule;
-                    }
-                    solidityAllText += ")\n";
-                }
-                solidityAllText += "        inProcessFlow(ProcessFlow.To" + function_yawl.name + ")\n";
-                //return parameters
-                if (function_yawl.outputVariables.Count>0)
-                {
-                    solidityAllText += "        returns (";
-                    int countOutputVaris = 0;
-                    foreach(var outputVari in function_yawl.outputVariables)
-                    {
-                        if (countOutputVaris > 0)
-                        {
-                            solidityAllText += ",";
-                        }
-                        if(outputVari.type=="string")
-                        {
-                            solidityAllText += outputVari.type + " memory _" + outputVari.name;
-                        }
-                        else
-                        {
-                            solidityAllText += outputVari.type +" _" + outputVari.name;
-                        }
-                            
-                        countOutputVaris++;
-                    }
-                    //in/output variables for output
-                    foreach (var inOutputVari in function_yawl.inOutVariables)
-                    {
-                        if (countOutputVaris > 0)
-                        {
-                            solidityAllText += ", ";
-                        }
-                        if(inOutputVari.type == "string")
-                        {
-                            solidityAllText +=  inOutputVari.type + " memory " + inOutputVari.name;
-                        }
-                        else
-                        {
-                            solidityAllText += inOutputVari.type +" " + inOutputVari.name;
-                        }
-                            
-                        countOutputVaris++;
-                    }
-                    solidityAllText += ")\n";
-                }
-                solidityAllText += "    {\n";
-                //Take input variables to state variables
-                foreach(var inputVariForState in function_yawl.inputVariables)
-                {
-                    if(yAWL.allLocalVariables.Exists(x=>x.name == inputVariForState.name))
-                    {
-                        solidityAllText += "        " + inputVariForState.name+ " = _" + inputVariForState.name + ";\n";
-                    }
-                }
-                //Take state variables to output variables 
-                foreach (var outputVariFromState in function_yawl.outputVariables)
-                {
-                    if(outputVariFromState.defaultVaule != "" && outputVariFromState.defaultVaule != "0")
-                    {
-                        solidityAllText += "        _" + outputVariFromState.name + " = " + outputVariFromState.defaultVaule + ";\n";
-                    }
-                    else if (yAWL.allLocalVariables.Exists(x => x.name == outputVariFromState.name))
-                    {
-                        solidityAllText += "        _" + outputVariFromState.name + " = " + outputVariFromState.name + ";\n";
-                    }
-                }
-                //deal with process flow
 
-                solidityAllText += "    }\n\n";
+                    countOutputVaris++;
+                }
+                function_text += ")\n";
+            }
+            function_text += "    {\n";
+            //Take input variables to state variables
+            foreach (var inputVariForState in function.inputVariables)
+            {
+                if (loclaVariables.Exists(x => x.name == inputVariForState.name))
+                {
+                    function_text += "        " + inputVariForState.name + " = _" + inputVariForState.name + ";\n";
+                }
+            }
+            //Take state variables to output variables 
+            foreach (var outputVariFromState in function.outputVariables)
+            {
+                if (outputVariFromState.defaultVaule != null
+                    && outputVariFromState.defaultVaule != "" && outputVariFromState.defaultVaule != "0")
+                {
+                    function_text += "        _" + outputVariFromState.name + " = " + outputVariFromState.defaultVaule + ";\n";
+                }
+                else if (loclaVariables.Exists(x => x.name == outputVariFromState.name))
+                {
+                    function_text += "        _" + outputVariFromState.name + " = " + outputVariFromState.name + ";\n";
+                }
             }
 
-
-            solidityAllText += "}";
+            function_text += "        deleteFlow(ProcessFlow.To"+ function.name+");\n";
+            //deal with process flow
+            if(function.nextProcess.nextProcesses.Count >= 1)
+            {
+                if(function.nextProcess.nextProcesses.Count == 1)
+                {
+                    if(function.nextProcess.nextProcesses[0].processName!= "OutputCondition")
+                    {
+                        function_text += "        currentProcessFlows.push(ProcessFlow.To" 
+                            + function.nextProcess.nextProcesses[0].processName + ");\n";
+                    }
+                    
+                }
+                else if (function.nextProcess.splitOperation == "and")
+                {
+                    foreach(var nextproc in function.nextProcess.nextProcesses)
+                    {
+                        if (nextproc.processName != "OutputCondition")
+                        {
+                            function_text += "        currentProcessFlows.push(ProcessFlow.To"
+                                + nextproc.processName + ");\n";
+                        }
+                        
+                    }
+                }
+                else if(function.nextProcess.splitOperation == "xor")
+                {
+                    var strElseText = "        else\n        {\n";
+                    bool isFirstIf = true;
+                    foreach (var nextproc in function.nextProcess.nextProcesses)
+                    {
+                        if(nextproc.condition == "otherwise")
+                        {
+                            if(nextproc.processName != "OutputCondition")
+                            {
+                                strElseText += "            currentProcessFlows.push(ProcessFlow.To"
+                                    + nextproc.processName + ");\n"; 
+                            }
+                            strElseText +="        }\n";
+                        }
+                        else if(isFirstIf)
+                        {
+                            function_text += "        if(" + nextproc.condition + ")\n        {\n";
+                            if (nextproc.processName != "OutputCondition")
+                            {
+                                function_text += "            currentProcessFlows.push(ProcessFlow.To"
+                                + nextproc.processName + ");\n";
+                            }
+                            function_text +="        }\n";
+                            isFirstIf = false;
+                        }
+                        else
+                        {
+                            function_text += "        else if(" + nextproc.condition + ")\n        {\n";
+                            if (nextproc.processName != "OutputCondition")
+                            {
+                                function_text += "            currentProcessFlows.push(ProcessFlow.To"
+                                + nextproc.processName + ");\n";
+                            }
+                            function_text += "        }\n";
+                        }
+                    }
+                    function_text += strElseText;
+                }
+            }
             
-            return solidityAllText;
+            function_text += "    }\n\n";
+            return function_text;
         }
     }
 }

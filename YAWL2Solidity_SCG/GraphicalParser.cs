@@ -21,6 +21,7 @@ namespace Graphical2SmartContact_SCG
             public string name;
             public string id;
             public string address;
+            public List<string> functionNames = new List<string>();
         }
         public class DefineEnum
         {
@@ -48,6 +49,7 @@ namespace Graphical2SmartContact_SCG
             public string currentProcessName;
             public List<ToNextProcess> nextProcesses = new List<ToNextProcess>();
             public string splitOperation; //XOR, OR, AND //only work when it has more than one process.
+            public List<Role> currentProcessRoles = new List<Role>();
         };
         public class ToNextProcess
         {
@@ -379,8 +381,38 @@ namespace Graphical2SmartContact_SCG
                                     flow.splitOperation = split_node.Attributes.GetNamedItem("code").InnerXml;
                                 }
                             }
-
                         }
+                        //Roles in resourcing
+                        XmlNodeList roles_nodes = e_flow_input.GetElementsByTagName("role");
+                        if(roles_nodes.Count>0)
+                        {
+                            foreach(XmlNode role_node in roles_nodes)
+                            {
+                                //role's id is not empty
+                                if(role_node.InnerText != null && role_node.InnerText !="")
+                                {
+                                    //add this id into process
+                                    Role tempRole = new Role();
+                                    tempRole.id = role_node.InnerText;
+                                    flow.currentProcessRoles.Add(tempRole);
+
+                                    //add this id into allRoles list
+                                    var foundRole = allRoles.Find(x => x.id == role_node.InnerText);
+                                    if(foundRole != null)
+                                    {
+                                        //add this function/process name into AllRoles list
+                                        foundRole.functionNames.Add(flow.currentProcessName);
+                                    }
+                                    else
+                                    {
+                                        tempRole.functionNames.Add(flow.currentProcessName);
+                                        allRoles.Add(tempRole);
+                                    }
+                                    
+                                }
+                            }
+                        }
+
                     }
                     allFlows.Add(flow);
                 }
@@ -459,6 +491,9 @@ namespace Graphical2SmartContact_SCG
                                 }
                             }
                             //InputParam, outputParam and in/out
+                            //In YAWL, inputParam is for output;
+                            //OutputParam is for input;
+                            //Therefore, we do a reverse here.
                             else
                             {
                                 var paraVari = allLocalVariables.Find(x => x.name == paraName.InnerText);
@@ -466,21 +501,6 @@ namespace Graphical2SmartContact_SCG
                                 {
                                     if (para.Name == "inputParam")
                                     {
-                                        var findResult = function_temp.outputVariables.Find(x => x.name == paraName.InnerText);
-                                        if (findResult != null)
-                                        {
-                                            function_temp.outputVariables.Remove(findResult);
-                                            function_temp.inOutVariables.Add(findResult);
-                                        }
-                                        else
-                                        {
-                                            function_temp.inputVariables.Add(paraVari);
-                                        }
-
-                                    }
-                                    else if (para.Name == "outputParam")
-                                    {
-
                                         var findResult = function_temp.inputVariables.Find(x => x.name == paraName.InnerText);
                                         if (findResult != null)
                                         {
@@ -490,6 +510,21 @@ namespace Graphical2SmartContact_SCG
                                         else
                                         {
                                             function_temp.outputVariables.Add(paraVari);
+                                        }
+
+                                    }
+                                    else if (para.Name == "outputParam")
+                                    {
+
+                                        var findResult = function_temp.outputVariables.Find(x => x.name == paraName.InnerText);
+                                        if (findResult != null)
+                                        {
+                                            function_temp.outputVariables.Remove(findResult);
+                                            function_temp.inOutVariables.Add(findResult);
+                                        }
+                                        else
+                                        {
+                                            function_temp.inputVariables.Add(paraVari);
                                         }
 
                                     }
@@ -506,8 +541,6 @@ namespace Graphical2SmartContact_SCG
 
         public void parseYawlRoles(string text)
         {
-            allRoles.Clear();
-
             //parse YAWL roles
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(text);
@@ -520,13 +553,32 @@ namespace Graphical2SmartContact_SCG
                 if(role_node.GetType().Name == "XmlElement")
                 {
                     XmlElement e_role_node = (XmlElement)role_node;
-                    if(e_role_node.GetElementsByTagName("name").Item(0)!=null&& e_role_node.GetElementsByTagName("description").Item(0) != null)
+                    var RoleName_node = e_role_node.GetElementsByTagName("name").Item(0);
+                    var RoleAddress_node = e_role_node.GetElementsByTagName("description").Item(0);
+                    if(RoleName_node != null && RoleAddress_node != null)
                     {
-                        Role role_temp = new Role();
-                        role_temp.id = e_role_node.GetAttribute("id");
-                        role_temp.name = e_role_node.GetElementsByTagName("name").Item(0).InnerText;
-                        role_temp.address = e_role_node.GetElementsByTagName("description").Item(0).InnerText;
-                        allRoles.Add(role_temp);
+                        var str_RoleId = e_role_node.GetAttribute("id");
+                        if(str_RoleId != null && str_RoleId != "")
+                        {
+                            //find this role in allRoles list
+                            var foundRole = allRoles.Find(x => x.id == str_RoleId);
+                            if(foundRole!=null)
+                            {
+                                foundRole.name = RoleName_node.InnerText;
+                                foundRole.address = RoleAddress_node.InnerText;
+                            }
+                            else
+                            {
+                                //This role is not in allRoles list
+                                Role role_temp = new Role();
+                                role_temp.id = str_RoleId;
+                                role_temp.name = RoleName_node.InnerText;
+                                role_temp.address = RoleAddress_node.InnerText;
+                                allRoles.Add(role_temp);
+                            }
+                            
+                        }
+
                     }
                     
 
@@ -538,8 +590,8 @@ namespace Graphical2SmartContact_SCG
         }
         #endregion
 
-            #region BPMN
-            void parseBPMN(string text)
+        #region BPMN
+        void parseBPMN(string text)
         {
 
         }
