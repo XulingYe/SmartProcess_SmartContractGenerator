@@ -59,7 +59,12 @@ namespace Graphical2SmartContact_SCG
                         {
                             isBPMN = false;
                             Auto_Size();
+                            treeView_displayYAWLRoles.Nodes.Clear();
                         }
+                        treeView_Checking.Nodes.Clear();
+                        treeView_SCfileTree.Nodes.Clear();
+                        richTextBox_displaySC.Text = "";
+                        textBox_SCExportedPath.Text = "";
                         graphicalParser.parseGraphical(text,isBPMN);
                     }
                 }
@@ -160,10 +165,10 @@ namespace Graphical2SmartContact_SCG
         #region Content checking
         private void btn_fromGraphical2Checking_Click(object sender, EventArgs e)
         {
-            if (graphicalParser.fileName != "default" & treeView_displayYAWLRoles.Nodes.Count>0)
+            treeView_Checking.BeginUpdate();
+            treeView_Checking.Nodes.Clear();
+            if (graphicalParser.allFunctions.Count > 0 && treeView_displayYAWLRoles.Nodes.Count>0)
             {
-                treeView_Checking.BeginUpdate();
-                treeView_Checking.Nodes.Clear();
                 //add data definition
                 /*var definedEnums_node = treeView_table.Nodes.Add("Defined Data Structure");
                 definedEnums_node.NodeFont = new Font("Arial", 9, FontStyle.Bold);
@@ -286,7 +291,7 @@ namespace Graphical2SmartContact_SCG
                     }*/
                     //Roles
                     var funRoles_node = function_node.Nodes.Add("Roles"); ;
-                    foreach (var funRole in function.nextProcess.currentProcessRoles)
+                    foreach (var funRole in function.ProcessFlow.currentProcessRoles)
                     {
                         var role_node = funRoles_node.Nodes.Add("Role: " + funRole.name);
                         role_node.Nodes.Add("address: " + funRole.address);
@@ -311,26 +316,23 @@ namespace Graphical2SmartContact_SCG
                         funinoutputs_node.Nodes.Add(funinoutput.name);
                     }*/
                 }
-                treeView_Checking.EndUpdate();
             }
+            treeView_Checking.EndUpdate();
         }
         private void btn_fromChecking2SC_Click(object sender, EventArgs e)
         {
-            if(graphicalParser.fileName!="default")
+            treeView_SCfileTree.BeginUpdate();
+            treeView_SCfileTree.Nodes.Clear();
+            if(graphicalParser.allFunctions.Count>0)
             {
-                treeView_SCfileTree.BeginUpdate();
-                treeView_SCfileTree.Nodes.Clear();
                 var contracts_node = treeView_SCfileTree.Nodes.Add("contracts");
                 solidityGenerator.generateSolidityText(graphicalParser);
                 foreach(var scFile in solidityGenerator.allSolidityFiles)
                 {
                     contracts_node.Nodes.Add(scFile.contractName);
                 }
-                treeView_SCfileTree.EndUpdate();
             }
-            
-
-            
+            treeView_SCfileTree.EndUpdate();
         }
         private void AutosizeChecking(int width_table, int height_table)
         {

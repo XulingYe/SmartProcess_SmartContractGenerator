@@ -28,6 +28,7 @@ namespace Graphical2SmartContact_SCG
             SolidityFile sFile = new SolidityFile();
             sFile.contractName = graphicalP.fileName;
 
+            //SC process flow smart contract
             string SolidityProcessFlowContractName = "SCProcessFlow";
             sFile.fileAllText += "import \"./" + SolidityProcessFlowContractName + ".sol\";\n\n";
             generateSolidityProcessFlow(graphicalP.allFlows, SolidityProcessFlowContractName);
@@ -63,6 +64,25 @@ namespace Graphical2SmartContact_SCG
                 sFile.fileAllText += ";\n";
             }
 
+            //roles in state variables
+            sFile.fileAllText += "\n//Roles in state variables\n";
+            var strRolesInModifier = "";
+            foreach (var role_graphical in graphicalP.allRoles)
+            {
+                //state variable
+                sFile.fileAllText += "    address " + role_graphical.name + "Address";
+                if (role_graphical.address != null && role_graphical.address != "")
+                {
+                    sFile.fileAllText += " = " + role_graphical.address;
+                }
+                sFile.fileAllText += ";\n";
+                //modifier
+                strRolesInModifier += "    modifier Only" + role_graphical.name + "(){\n"
+                    + "        require(msg.sender == " + role_graphical.name
+                    + "Address,\" Only " + role_graphical.name
+                    + " can call this function.\");\n        _;\n    }\n";
+            }
+
             //modifiers
             sFile.fileAllText += "\n//Modifiers\n";
             foreach (var modifier_graphical in graphicalP.allModifiers)
@@ -86,14 +106,16 @@ namespace Graphical2SmartContact_SCG
                     + "         );\n        _;\n    }\n";
             }
 
+            //Roles in modifiers
+            sFile.fileAllText += "\n//Roles in modifiers\n";
+            sFile.fileAllText += strRolesInModifier;
+
             //functions
             sFile.fileAllText += "\n//Functions\n";
             foreach (var function_yawl in graphicalP.allFunctions)
             {
                 sFile.fileAllText += addSolidityFunction(function_yawl, graphicalP.allLocalVariables);
             }
-
-
             sFile.fileAllText += "}";
 
             allSolidityFiles.Add(sFile);
@@ -201,10 +223,10 @@ namespace Graphical2SmartContact_SCG
                 countInputVaris++;
             }
             function_text += ")\n        public\n";
-            if (function.inputVariables.Count == 0)
+            /*if (function.inputVariables.Count == 0)
             {
                 function_text += "        view\n";
-            }
+            }*/
             //modifiers
             foreach (var modifi in function.modifiers)
             {
@@ -220,6 +242,11 @@ namespace Graphical2SmartContact_SCG
                 function_text += ")\n";
             }
             function_text += "        inProcessFlow(ProcessFlow.To" + function.name + ")\n";
+            foreach(var funRoletemp in function.ProcessFlow.currentProcessRoles)
+            {
+                function_text += "        Only" + funRoletemp.name + "()\n";
+            }
+            
             //return parameters
             if (function.outputVariables.Count > 0)
             {
@@ -287,20 +314,20 @@ namespace Graphical2SmartContact_SCG
 
             function_text += "        deleteFlow(ProcessFlow.To"+ function.name+");\n";
             //deal with process flow
-            if(function.nextProcess.nextProcesses.Count >= 1)
+            if(function.ProcessFlow.nextProcesses.Count >= 1)
             {
-                if(function.nextProcess.nextProcesses.Count == 1)
+                if(function.ProcessFlow.nextProcesses.Count == 1)
                 {
-                    if(function.nextProcess.nextProcesses[0].processName!= "OutputCondition")
+                    if(function.ProcessFlow.nextProcesses[0].processName!= "OutputCondition")
                     {
                         function_text += "        currentProcessFlows.push(ProcessFlow.To" 
-                            + function.nextProcess.nextProcesses[0].processName + ");\n";
+                            + function.ProcessFlow.nextProcesses[0].processName + ");\n";
                     }
                     
                 }
-                else if (function.nextProcess.splitOperation == "and")
+                else if (function.ProcessFlow.splitOperation == "and")
                 {
-                    foreach(var nextproc in function.nextProcess.nextProcesses)
+                    foreach(var nextproc in function.ProcessFlow.nextProcesses)
                     {
                         if (nextproc.processName != "OutputCondition")
                         {
@@ -310,11 +337,11 @@ namespace Graphical2SmartContact_SCG
                         
                     }
                 }
-                else if(function.nextProcess.splitOperation == "xor")
+                else if(function.ProcessFlow.splitOperation == "xor")
                 {
                     var strElseText = "        else\n        {\n";
                     bool isFirstIf = true;
-                    foreach (var nextproc in function.nextProcess.nextProcesses)
+                    foreach (var nextproc in function.ProcessFlow.nextProcesses)
                     {
                         if(nextproc.condition == "otherwise")
                         {

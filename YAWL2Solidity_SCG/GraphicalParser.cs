@@ -42,7 +42,7 @@ namespace Graphical2SmartContact_SCG
             public List<Variable> outputVariables = new List<Variable>();
             public List<Variable> inOutVariables = new List<Variable>();
             public List<Modifier> modifiers = new List<Modifier>();
-            public Flow nextProcess = new Flow();
+            public Flow ProcessFlow = new Flow();
         };
         public class Flow
         {
@@ -408,11 +408,9 @@ namespace Graphical2SmartContact_SCG
                                         tempRole.functionNames.Add(flow.currentProcessName);
                                         allRoles.Add(tempRole);
                                     }
-                                    
                                 }
                             }
                         }
-
                     }
                     allFlows.Add(flow);
                 }
@@ -456,7 +454,7 @@ namespace Graphical2SmartContact_SCG
             var flow = allFlows.Find(x => x.currentProcessName == function_temp.name);
             if (flow != null)
             {
-                function_temp.nextProcess = flow;
+                function_temp.ProcessFlow = flow;
 
                 
                 foreach(XmlNode para in decomposition_node.ChildNodes)
@@ -564,8 +562,23 @@ namespace Graphical2SmartContact_SCG
                             var foundRole = allRoles.Find(x => x.id == str_RoleId);
                             if(foundRole!=null)
                             {
-                                foundRole.name = RoleName_node.InnerText;
-                                foundRole.address = RoleAddress_node.InnerText;
+                                foreach(var functionName in foundRole.functionNames)
+                                {
+                                    var processTemp = allFlows.Find(x => x.currentProcessName == functionName);
+                                    if(processTemp!=null)
+                                    {
+                                        foreach(var processTempRole in processTemp.currentProcessRoles)
+                                        {
+                                            if(processTempRole.id == str_RoleId)
+                                            {
+                                                processTempRole.name = RoleName_node.InnerText;
+                                                processTempRole.address = RoleAddress_node.InnerText;
+                                            }
+                                        }
+                                    }
+                                }
+                                //foundRole.name = RoleName_node.InnerText;
+                                //foundRole.address = RoleAddress_node.InnerText;
                             }
                             else
                             {
