@@ -22,6 +22,14 @@ namespace Graphical2SmartContact_SCG
             public string id;
             public string address;
             public List<string> functionNames = new List<string>();
+            //actionTypes: to store the types (info, check, pay) of the actions for the role
+            public List<string> actionTypes = new List<string>(); 
+        }
+
+        //multi-roles class is used to handle the functions that multiple roles can operate.
+        public class MultiRoles
+        {
+            public List<Role> roles = new List<Role>();
         }
         public class DefineEnum
         {
@@ -42,7 +50,9 @@ namespace Graphical2SmartContact_SCG
             public List<Variable> outputVariables = new List<Variable>();
             public List<Variable> inOutVariables = new List<Variable>();
             public List<Modifier> modifiers = new List<Modifier>();
-            public Flow ProcessFlow = new Flow();
+            public Flow processFlow = new Flow();
+            public string actionType; //indicate function type. Could be check, change or pay.
+            public Variable payTypeVariable; // indicate the variable of the payment. The type of this variable must be uint. 
         };
         public class Flow
         {
@@ -64,6 +74,7 @@ namespace Graphical2SmartContact_SCG
         public List<Function> allFunctions = new List<Function>();
         public List<Flow> allFlows = new List<Flow>();
         public List<Role> allRoles = new List<Role>();
+        public List<MultiRoles> allMultiRoles = new List<MultiRoles>();
         public string fileName = "default";
 
         public void parseGraphical(string text, bool isBPMN)
@@ -162,12 +173,13 @@ namespace Graphical2SmartContact_SCG
                                         {
                                             var originalType = lvType_node.InnerXml;
                                             //modifier
-                                            if (originalType == "solidity_modifier")
+                                            /*if (originalType == "solidity_modifier")
                                             {
                                                 addModifier(e_LVinRootNet);
-                                            }
+                                            }*/
+
                                             //local variable
-                                            else
+                                            if (originalType != "Type")
                                             {
                                                 addLocalVariable(e_LVinRootNet, originalType);
                                             }
@@ -384,8 +396,10 @@ namespace Graphical2SmartContact_SCG
                         }
                         //Roles in resourcing
                         XmlNodeList roles_nodes = e_flow_input.GetElementsByTagName("role");
-                        if(roles_nodes.Count>0)
+                        int rolesCount = roles_nodes.Count;
+                        if(rolesCount > 0)
                         {
+                            var tempMultiRoles = new MultiRoles();
                             foreach(XmlNode role_node in roles_nodes)
                             {
                                 //role's id is not empty
@@ -402,13 +416,25 @@ namespace Graphical2SmartContact_SCG
                                     {
                                         //add this function/process name into AllRoles list
                                         foundRole.functionNames.Add(flow.currentProcessName);
+                                        if(rolesCount>1 && !tempMultiRoles.roles.Contains(foundRole))
+                                        {
+                                            tempMultiRoles.roles.Add(foundRole);
+                                        }
                                     }
                                     else
                                     {
                                         tempRole.functionNames.Add(flow.currentProcessName);
                                         allRoles.Add(tempRole);
+                                        if (rolesCount > 1 && !tempMultiRoles.roles.Contains(foundRole))
+                                        {
+                                            tempMultiRoles.roles.Add(foundRole);
+                                        }
                                     }
                                 }
+                            }
+                            if(rolesCount>1)
+                            {
+                                allMultiRoles.Add(tempMultiRoles);
                             }
                         }
                     }
@@ -454,7 +480,7 @@ namespace Graphical2SmartContact_SCG
             var flow = allFlows.Find(x => x.currentProcessName == function_temp.name);
             if (flow != null)
             {
-                function_temp.ProcessFlow = flow;
+                function_temp.processFlow = flow;
 
                 
                 foreach(XmlNode para in decomposition_node.ChildNodes)
@@ -462,13 +488,15 @@ namespace Graphical2SmartContact_SCG
                     if (para.GetType().Name == "XmlElement")
                     {
                         XmlElement e_para = (XmlElement)para;
-                        XmlNode paraType = e_para.GetElementsByTagName("type").Item(0);
-                        XmlNode paraName = e_para.GetElementsByTagName("name").Item(0);
-                        if(paraType != null && paraName != null)
+                        XmlNode paraTypeNode = e_para.GetElementsByTagName("type").Item(0);
+                        XmlNode paraNameNode = e_para.GetElementsByTagName("name").Item(0);
+                        if(paraTypeNode != null && paraNameNode != null)
                         {
-                            //modifiers
-                            if(paraType.InnerText== "solidity_modifier")
+                            string strParaType = paraTypeNode.InnerText;
+                            string strParaName = paraNameNode.InnerText;
+                            if (strParaType == "Type")//solidity_modifier")
                             {
+                                /*//modifiers
                                 var paraModif = allModifiers.Find(x => x.name == paraName.InnerText);
                                 if(!function_temp.modifiers.Contains(paraModif))
                                 {
@@ -486,6 +514,24 @@ namespace Graphical2SmartContact_SCG
                                         }
                                     }
                                     function_temp.modifiers.Add(paraModif);
+                                }*/
+                                if(function_temp.actionType == null || function_temp.actionType == "")
+                                {
+                                    function_temp.actionType = strParaName;
+                                    if(strParaName=="pay")
+                                    {
+                                        XmlNode paraValueNode = e_para.GetElementsByTagName("defaultValue").Item(0);
+                                        if(paraValueNode!=null)
+                                        {
+                                            var findPayVariable = allLocalVariables.Find(x => x.name == paraValueNode.InnerText);
+                                            if(findPayVariable!=null)
+                                            {
+                                                function_temp.payTypeVariable = findPayVariable;
+                                            }
+                                            
+                                        }
+                                    }
+                                    
                                 }
                             }
                             //InputParam, outputParam and in/out
@@ -494,12 +540,12 @@ namespace Graphical2SmartContact_SCG
                             //Therefore, we do a reverse here.
                             else
                             {
-                                var paraVari = allLocalVariables.Find(x => x.name == paraName.InnerText);
+                                var paraVari = allLocalVariables.Find(x => x.name == strParaName);
                                 if (paraVari != null)
                                 {
                                     if (para.Name == "inputParam")
                                     {
-                                        var findResult = function_temp.inputVariables.Find(x => x.name == paraName.InnerText);
+                                        var findResult = function_temp.inputVariables.Find(x => x.name == strParaName);
                                         if (findResult != null)
                                         {
                                             function_temp.inputVariables.Remove(findResult);
@@ -514,7 +560,7 @@ namespace Graphical2SmartContact_SCG
                                     else if (para.Name == "outputParam")
                                     {
 
-                                        var findResult = function_temp.outputVariables.Find(x => x.name == paraName.InnerText);
+                                        var findResult = function_temp.outputVariables.Find(x => x.name == strParaName);
                                         if (findResult != null)
                                         {
                                             function_temp.outputVariables.Remove(findResult);
@@ -528,8 +574,8 @@ namespace Graphical2SmartContact_SCG
                                     }
                                 }
                             }
-                        } 
-                        
+                        }
+
                     }
                 }
 
@@ -562,18 +608,24 @@ namespace Graphical2SmartContact_SCG
                             var foundRole = allRoles.Find(x => x.id == str_RoleId);
                             if(foundRole!=null)
                             {
+                                //put the function names and types in all roles
                                 foreach(var functionName in foundRole.functionNames)
                                 {
-                                    var processTemp = allFlows.Find(x => x.currentProcessName == functionName);
-                                    if(processTemp!=null)
+                                    var funTemp = allFunctions.Find(x => x.name == functionName);
+                                    if(funTemp != null && funTemp.processFlow != null)
                                     {
-                                        foreach(var processTempRole in processTemp.currentProcessRoles)
+                                        foreach(var processTempRole in funTemp.processFlow.currentProcessRoles)
                                         {
                                             if(processTempRole.id == str_RoleId)
                                             {
                                                 processTempRole.name = RoleName_node.InnerText;
                                                 processTempRole.address = RoleAddress_node.InnerText;
                                             }
+                                        }
+                                        if((funTemp.actionType!=null||funTemp.actionType!="") 
+                                            && !foundRole.actionTypes.Contains(funTemp.actionType))
+                                        {
+                                            foundRole.actionTypes.Add(funTemp.actionType);
                                         }
                                     }
                                 }
@@ -589,17 +641,10 @@ namespace Graphical2SmartContact_SCG
                                 role_temp.address = RoleAddress_node.InnerText;
                                 allRoles.Add(role_temp);
                             }
-                            
                         }
-
                     }
-                    
-
                 }
-                
-
             }
-
         }
         #endregion
 

@@ -14,8 +14,14 @@ namespace Graphical2SmartContact_SCG
             public string contractName = "";
             public string fileAllText = "pragma solidity >=0.4.22 <0.9.0;\n\n";
         };
+        public class MultiRolesModifier
+        {
+            public string modifierName;
+            public List<Role> roles = new List<Role>();
+        }
 
         public List<SolidityFile> allSolidityFiles = new List<SolidityFile>();
+        public List<MultiRolesModifier> allMultiModifiers = new List<MultiRolesModifier>();
 
         /*public string solidityAllText = "";
         public string solidityProcessFlowAllText = "";
@@ -70,16 +76,21 @@ namespace Graphical2SmartContact_SCG
             foreach (var role_graphical in graphicalP.allRoles)
             {
                 //state variable
-                sFile.fileAllText += "    address " + role_graphical.name + "Address";
+                sFile.fileAllText += "    address " + role_graphical.name;
                 if (role_graphical.address != null && role_graphical.address != "")
                 {
                     sFile.fileAllText += " = " + role_graphical.address;
                 }
                 sFile.fileAllText += ";\n";
+                if(role_graphical.actionTypes.Contains("pay"))
+                {
+                    sFile.fileAllText += "    address payable "+ role_graphical.name
+                        +"Payable = payable(" + role_graphical.name + ");\n";
+                }
                 //modifier
                 strRolesInModifier += "    modifier Only" + role_graphical.name + "(){\n"
                     + "        require(msg.sender == " + role_graphical.name
-                    + "Address,\" Only " + role_graphical.name
+                    + ",\" Only " + role_graphical.name
                     + " can call this function.\");\n        _;\n    }\n";
             }
 
@@ -109,6 +120,35 @@ namespace Graphical2SmartContact_SCG
             //Roles in modifiers
             sFile.fileAllText += "\n//Roles in modifiers\n";
             sFile.fileAllText += strRolesInModifier;
+            //MultiRoles in modifiers
+            foreach(var multiRolesModifier in graphicalP.allMultiRoles)
+            {
+                var modifierName = "Only";
+                var modifierCondition = "";
+                var modifierErrorMessage = "Only ";
+                MultiRolesModifier tempMultiRolesModifier = new MultiRolesModifier();
+                tempMultiRolesModifier.roles = multiRolesModifier.roles;
+                for(int i = 0; i< multiRolesModifier.roles.Count; i++)
+                {
+                    var strRoleName = multiRolesModifier.roles[i].name;
+                    if(i>0)
+                    {
+                        modifierName += "Or";
+                        modifierCondition += " || ";
+                        modifierErrorMessage += " or ";
+                    }
+                    modifierName += strRoleName;
+                    modifierCondition += "msg.sender == " + strRoleName + "Address";
+                    modifierErrorMessage += strRoleName;
+
+                }
+                sFile.fileAllText += "    modifier " + modifierName + "(){\n"
+                    + "        require("+modifierCondition+",\" " + modifierErrorMessage
+                    + " can call this function.\");\n        _;\n    }\n";
+                tempMultiRolesModifier.modifierName = modifierName;
+                allMultiModifiers.Add(tempMultiRolesModifier);
+            }
+            
 
             //functions
             sFile.fileAllText += "\n//Functions\n";
@@ -218,7 +258,7 @@ namespace Graphical2SmartContact_SCG
                 }
                 else
                 {
-                    function_text += inOutputVari.type + inOutputVari.name;
+                    function_text += inOutputVari.type + " _" + inOutputVari.name;
                 }
                 countInputVaris++;
             }
@@ -242,9 +282,13 @@ namespace Graphical2SmartContact_SCG
                 function_text += ")\n";
             }
             function_text += "        inProcessFlow(ProcessFlow.To" + function.name + ")\n";
-            foreach(var funRoletemp in function.ProcessFlow.currentProcessRoles)
+            if(function.processFlow.currentProcessRoles.Count == 1)
             {
-                function_text += "        Only" + funRoletemp.name + "()\n";
+                function_text += "        Only" + function.processFlow.currentProcessRoles[0].name + "()\n";
+            }
+            else if (function.processFlow.currentProcessRoles.Count > 1)
+            {
+                function_text += "        " + getMultiRolesModifierName(function.processFlow.currentProcessRoles)+"()\n";
             }
             
             //return parameters
@@ -298,6 +342,20 @@ namespace Graphical2SmartContact_SCG
                     function_text += "        " + inputVariForState.name + " = _" + inputVariForState.name + ";\n";
                 }
             }
+            //Check for pay type
+            if(function.actionType == "pay" && function.payTypeVariable!=null)
+            {
+                if(function.processFlow.currentProcessRoles.Count==1)
+                {
+                    function_text += "        " + function.processFlow.currentProcessRoles[0].name + "Payable.transfer("
+                        +function.payTypeVariable.name+");\n";
+                }
+                else if(function.processFlow.currentProcessRoles.Count > 1)
+                {
+                    //TODO: more than one roles case
+                }
+            }
+
             //Take state variables to output variables 
             foreach (var outputVariFromState in function.outputVariables)
             {
@@ -314,20 +372,20 @@ namespace Graphical2SmartContact_SCG
 
             function_text += "        deleteFlow(ProcessFlow.To"+ function.name+");\n";
             //deal with process flow
-            if(function.ProcessFlow.nextProcesses.Count >= 1)
+            if(function.processFlow.nextProcesses.Count >= 1)
             {
-                if(function.ProcessFlow.nextProcesses.Count == 1)
+                if(function.processFlow.nextProcesses.Count == 1)
                 {
-                    if(function.ProcessFlow.nextProcesses[0].processName!= "OutputCondition")
+                    if(function.processFlow.nextProcesses[0].processName!= "OutputCondition")
                     {
                         function_text += "        currentProcessFlows.push(ProcessFlow.To" 
-                            + function.ProcessFlow.nextProcesses[0].processName + ");\n";
+                            + function.processFlow.nextProcesses[0].processName + ");\n";
                     }
                     
                 }
-                else if (function.ProcessFlow.splitOperation == "and")
+                else if (function.processFlow.splitOperation == "and")
                 {
-                    foreach(var nextproc in function.ProcessFlow.nextProcesses)
+                    foreach(var nextproc in function.processFlow.nextProcesses)
                     {
                         if (nextproc.processName != "OutputCondition")
                         {
@@ -337,11 +395,11 @@ namespace Graphical2SmartContact_SCG
                         
                     }
                 }
-                else if(function.ProcessFlow.splitOperation == "xor")
+                else if(function.processFlow.splitOperation == "xor")
                 {
                     var strElseText = "        else\n        {\n";
                     bool isFirstIf = true;
-                    foreach (var nextproc in function.ProcessFlow.nextProcesses)
+                    foreach (var nextproc in function.processFlow.nextProcesses)
                     {
                         if(nextproc.condition == "otherwise")
                         {
@@ -380,6 +438,34 @@ namespace Graphical2SmartContact_SCG
             
             function_text += "    }\n\n";
             return function_text;
+        }
+
+        string getMultiRolesModifierName(List<Role> roles)
+        {
+            string nameResult = "Error";
+            foreach(var multiRoles in allMultiModifiers)
+            {
+                if(roles == multiRoles.roles)
+                {
+                    nameResult = multiRoles.modifierName;
+                }
+                else if(roles.Count == multiRoles.roles.Count)
+                {
+                    bool isMatch = true;
+                    foreach(var tempRole in roles)
+                    {
+                        if(!multiRoles.roles.Contains(tempRole))
+                        {
+                            isMatch = false;
+                        }
+                    }
+                    if(isMatch)
+                    {
+                        nameResult = multiRoles.modifierName;
+                    }
+                }
+            }
+            return nameResult;
         }
     }
 }

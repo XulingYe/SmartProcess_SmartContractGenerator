@@ -199,6 +199,13 @@ namespace Graphical2SmartContact_SCG
                     //add parameters to modifier
                     var role_node = roles_node.Nodes.Add(role_yawl.name);
                     role_node.NodeFont = new Font("Arial", 9);
+                    var strRoleTypes = "Types: ";
+                    for (int i = 0; i < role_yawl.actionTypes.Count; i++)
+                    {
+                        if (i > 0) { strRoleTypes += ", "; }
+                        strRoleTypes += role_yawl.actionTypes[i];
+                    }
+                    role_node.Nodes.Add(strRoleTypes);
                     role_node.Nodes.Add("address: " + role_yawl.address);
                     role_node.Nodes.Add("id: " + role_yawl.id);
                     var strRoleTasksName = "tasks: ";
@@ -211,6 +218,21 @@ namespace Graphical2SmartContact_SCG
                         strRoleTasksName += role_yawl.functionNames[i];
                     }
                     role_node.Nodes.Add(strRoleTasksName);
+                }
+                foreach(var multiRoles in graphicalParser.allMultiRoles)
+                {
+                    var strMultiRolesRow = "MultiRoles: (";
+                    for(int i=0; i<multiRoles.roles.Count; i++)
+                    {
+                        if(i>0)
+                        {
+                            strMultiRolesRow += ", ";
+                        }
+                        strMultiRolesRow += multiRoles.roles[i].name;
+
+                    }
+                    strMultiRolesRow += ")";
+                    roles_node.Nodes.Add(strMultiRolesRow);
                 }
                 /*var modifiers_node = treeView_table.Nodes.Add("Modifiers");
                 modifiers_node.NodeFont = new Font("Arial", 9, FontStyle.Bold);
@@ -289,9 +311,10 @@ namespace Graphical2SmartContact_SCG
                         funmodi_values += ")";
                         funmodifiers_node.Nodes.Add(funmodi_values);
                     }*/
+                    var funType_node = function_node.Nodes.Add("Type: " + function.actionType);
                     //Roles
-                    var funRoles_node = function_node.Nodes.Add("Roles"); ;
-                    foreach (var funRole in function.ProcessFlow.currentProcessRoles)
+                    var funRoles_node = function_node.Nodes.Add("Roles");
+                    foreach (var funRole in function.processFlow.currentProcessRoles)
                     {
                         var role_node = funRoles_node.Nodes.Add("Role: " + funRole.name);
                         role_node.Nodes.Add("address: " + funRole.address);
