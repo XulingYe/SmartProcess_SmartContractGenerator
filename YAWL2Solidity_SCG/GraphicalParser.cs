@@ -496,6 +496,7 @@ namespace Graphical2SmartContact_SCG
                             string strParaName = paraNameNode.InnerText;
                             if (strParaType == "Type")//solidity_modifier")
                             {
+                                #region modifiers in function
                                 /*//modifiers
                                 var paraModif = allModifiers.Find(x => x.name == paraName.InnerText);
                                 if(!function_temp.modifiers.Contains(paraModif))
@@ -515,7 +516,8 @@ namespace Graphical2SmartContact_SCG
                                     }
                                     function_temp.modifiers.Add(paraModif);
                                 }*/
-                                if(function_temp.actionType == null || function_temp.actionType == "")
+                                #endregion
+                                if (function_temp.actionType == null || function_temp.actionType == "")
                                 {
                                     function_temp.actionType = strParaName;
                                     if(strParaName=="pay")
@@ -528,10 +530,8 @@ namespace Graphical2SmartContact_SCG
                                             {
                                                 function_temp.payTypeVariable = findPayVariable;
                                             }
-                                            
                                         }
                                     }
-                                    
                                 }
                             }
                             //InputParam, outputParam and in/out
@@ -555,7 +555,6 @@ namespace Graphical2SmartContact_SCG
                                         {
                                             function_temp.outputVariables.Add(paraVari);
                                         }
-
                                     }
                                     else if (para.Name == "outputParam")
                                     {
@@ -570,15 +569,12 @@ namespace Graphical2SmartContact_SCG
                                         {
                                             function_temp.inputVariables.Add(paraVari);
                                         }
-
                                     }
                                 }
                             }
                         }
-
                     }
                 }
-
             }
             allFunctions.Add(function_temp);
         }

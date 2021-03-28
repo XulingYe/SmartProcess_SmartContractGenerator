@@ -12,7 +12,7 @@ namespace Graphical2SmartContact_SCG
         public class SolidityFile
         {
             public string contractName = "";
-            public string fileAllText = "pragma solidity >=0.4.22 <0.9.0;\n\n";
+            public string fileAllText = "// SPDX-License-Identifier: GPL-3.0\npragma solidity >=0.4.22 <0.9.0;\n\n";
         };
         public class MultiRolesModifier
         {
@@ -65,7 +65,15 @@ namespace Graphical2SmartContact_SCG
                 if (localvari_graphical.defaultVaule != null && localvari_graphical.defaultVaule != "" 
                     && localvari_graphical.defaultVaule != "0")
                 {
-                    sFile.fileAllText += " = " + localvari_graphical.defaultVaule; 
+                    if(localvari_graphical.type=="string")
+                    {
+                        sFile.fileAllText += " = \"" + localvari_graphical.defaultVaule + "\"";
+                    }
+                    else
+                    {
+                        sFile.fileAllText += " = " + localvari_graphical.defaultVaule; 
+                    }
+                    
                 }
                 sFile.fileAllText += ";\n";
             }
@@ -206,7 +214,7 @@ namespace Graphical2SmartContact_SCG
                     + "        currentProcessFlows.push(" + initailValue + ");\n    }\n\n";
             
             //getCurrentProcessState() function
-            file.fileAllText += "    function getCurrentProcessState()\n        public\n"
+            file.fileAllText += "    function getCurrentProcessState()\n        public\n        view\n"
                     + "        returns(ProcessFlow[] memory)\n    {\n"
                     + "        return currentProcessFlows;\n    }\n\n";
 
@@ -254,7 +262,7 @@ namespace Graphical2SmartContact_SCG
                 }
                 if (inOutputVari.type == "string")
                 {
-                    function_text += inOutputVari.type + " memory " + inOutputVari.name;
+                    function_text += inOutputVari.type + " memory _" + inOutputVari.name;
                 }
                 else
                 {
@@ -267,6 +275,10 @@ namespace Graphical2SmartContact_SCG
             {
                 function_text += "        view\n";
             }*/
+            if (function.actionType == "pay" && function.payTypeVariable != null)
+            {
+                function_text += "        payable\n";
+            }
             //modifiers
             foreach (var modifi in function.modifiers)
             {
@@ -281,7 +293,6 @@ namespace Graphical2SmartContact_SCG
                 }
                 function_text += ")\n";
             }
-            function_text += "        inProcessFlow(ProcessFlow.To" + function.name + ")\n";
             if(function.processFlow.currentProcessRoles.Count == 1)
             {
                 function_text += "        Only" + function.processFlow.currentProcessRoles[0].name + "()\n";
@@ -290,6 +301,7 @@ namespace Graphical2SmartContact_SCG
             {
                 function_text += "        " + getMultiRolesModifierName(function.processFlow.currentProcessRoles)+"()\n";
             }
+            function_text += "        inProcessFlow(ProcessFlow.To" + function.name + ")\n";
             
             //return parameters
             if (function.outputVariables.Count > 0)
@@ -322,11 +334,11 @@ namespace Graphical2SmartContact_SCG
                     }
                     if (inOutputVari.type == "string")
                     {
-                        function_text += inOutputVari.type + " memory " + inOutputVari.name;
+                        function_text += inOutputVari.type + " memory _" + inOutputVari.name;
                     }
                     else
                     {
-                        function_text += inOutputVari.type + " " + inOutputVari.name;
+                        function_text += inOutputVari.type + " _" + inOutputVari.name;
                     }
 
                     countOutputVaris++;
