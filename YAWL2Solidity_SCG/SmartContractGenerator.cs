@@ -8,17 +8,33 @@ using static Graphical2SmartContact_SCG.GraphicalParser;
 namespace Graphical2SmartContact_SCG
 {
     public class SmartContractGenerator
-    {
-        public class SolidityFile
-        {
-            public string contractName = "";
-            public string fileAllText = "// SPDX-License-Identifier: GPL-3.0\npragma solidity >=0.4.22 <0.9.0;\n\n";
-        };
+    {        
         public class MultiRolesModifier
         {
             public string modifierName;
             public List<Role> roles = new List<Role>();
         }
+        public class SolidityFile
+        {
+            public string contractName = "";
+            public string fileAllText = "// SPDX-License-Identifier: GPL-3.0\npragma solidity >=0.4.22 <0.9.0;\n\n";
+            public List<string> parentContracts = new List<string>();
+            public List<SolidityEnum> allEnums = new List<SolidityEnum>();
+            public List<StateVariable> allVariables = new List<StateVariable>();
+
+        };
+        public class SolidityEnum
+        {
+            public string enumName;
+            public List<string> enumValues = new List<string>();
+        }
+        public class StateVariable
+        {
+            public string variableName;
+            public string value;
+            public string type;
+        }
+
 
         public List<SolidityFile> allSolidityFiles = new List<SolidityFile>();
         public List<MultiRolesModifier> allMultiModifiers = new List<MultiRolesModifier>();
@@ -40,42 +56,53 @@ namespace Graphical2SmartContact_SCG
             generateSolidityProcessFlow(graphicalP.allFlows, SolidityProcessFlowContractName);
 
             sFile.fileAllText += "contract " + graphicalP.fileName + " is " + SolidityProcessFlowContractName + "{\n";
-
+            sFile.parentContracts.Add(SolidityProcessFlowContractName);
             //enums
             sFile.fileAllText += "//Data type definition\n";
             foreach (var enum_graphical in graphicalP.allDefinedEnums)
             {
+                SolidityEnum enumTemp = new SolidityEnum();
                 sFile.fileAllText += "    enum " + enum_graphical.name + " { ";
-                for(int i = 0; i < enum_graphical.elements.Count; i++)
+                enumTemp.enumName = enum_graphical.name;
+
+                for (int i = 0; i < enum_graphical.elements.Count; i++)
                 {
                     if(i>0)
                     {
                         sFile.fileAllText += ", ";
                     }
                     sFile.fileAllText += enum_graphical.elements[i];
+                    enumTemp.enumValues.Add(enum_graphical.elements[i]);
                 }
                 sFile.fileAllText += " }\n";
+                sFile.allEnums.Add(enumTemp);
             }
 
             //state variables
             sFile.fileAllText += "\n//Defined state variables\n";
             foreach (var localvari_graphical in graphicalP.allLocalVariables)
             {
+                StateVariable variableTemp = new StateVariable();
                 sFile.fileAllText += "    " + localvari_graphical.type + " "/*" public "*/ + localvari_graphical.name;
+                variableTemp.type = localvari_graphical.type;
+                variableTemp.variableName = localvari_graphical.name;
                 if (localvari_graphical.defaultVaule != null && localvari_graphical.defaultVaule != "" 
                     && localvari_graphical.defaultVaule != "0")
                 {
                     if(localvari_graphical.type=="string")
                     {
                         sFile.fileAllText += " = \"" + localvari_graphical.defaultVaule + "\"";
+                        variableTemp.value = "\"" + localvari_graphical.defaultVaule + "\"";
                     }
                     else
                     {
-                        sFile.fileAllText += " = " + localvari_graphical.defaultVaule; 
+                        sFile.fileAllText += " = " + localvari_graphical.defaultVaule;
+                        variableTemp.value = localvari_graphical.defaultVaule;
                     }
                     
                 }
                 sFile.fileAllText += ";\n";
+                sFile.allVariables.Add(variableTemp);
             }
 
             //roles in state variables
@@ -179,6 +206,8 @@ namespace Graphical2SmartContact_SCG
             //Automated generated process state based on process flows
             file.fileAllText += "\n//Automated generated process state based on process flows\n";
             file.fileAllText += "    enum ProcessFlow { ";
+            SolidityEnum enumProcessFlowTemp = new SolidityEnum();
+            enumProcessFlowTemp.enumName = "ProcessFlow";
             int count = 0;
             string initailValue = "";
             foreach (var flow in allFlows)
@@ -189,7 +218,9 @@ namespace Graphical2SmartContact_SCG
                 }
                 if (flow.currentProcessName != "InputCondition")
                 {
-                    file.fileAllText += "To" + flow.currentProcessName;
+                    string strProcessName = "To" + flow.currentProcessName;
+                    file.fileAllText += strProcessName;
+                    enumProcessFlowTemp.enumValues.Add(strProcessName);
                     count++;
                 }
                 else
@@ -198,6 +229,7 @@ namespace Graphical2SmartContact_SCG
                 }
             }
             file.fileAllText += " }\n\n";
+            file.allEnums.Add(enumProcessFlowTemp);
 
             //current process flow
             file.fileAllText += "    ProcessFlow[] currentProcessFlows;\n\n";// = " + initailValue + ";\n\n";

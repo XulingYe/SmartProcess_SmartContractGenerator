@@ -29,6 +29,7 @@ namespace Graphical2SmartContact_SCG
         #region VariablesDefinition
         GraphicalParser graphicalParser = new GraphicalParser();
         SmartContractGenerator solidityGenerator = new SmartContractGenerator();
+        SmartContractChecking smartContractChecking = new SmartContractChecking();
         #endregion
 
         #region Graphical representation
@@ -108,41 +109,6 @@ namespace Graphical2SmartContact_SCG
 
         }
 
-        private void AutosizeGraphical(int width_yawl, int height_yawl)
-        {
-            int treeViewYAWLRoles_width = 0;
-            int richBoxDisplayYAWL_width = width_yawl - 10;
-            if(isBPMN)
-            {
-                this.btn_importYAWLRoles.Hide();
-                this.treeView_displayYAWLRoles.Hide();
-            }
-            else
-            {
-                this.btn_importYAWLRoles.Show();
-                this.treeView_displayYAWLRoles.Show();
-                treeViewYAWLRoles_width = (width_yawl - 15) / 4;
-                richBoxDisplayYAWL_width -= (treeViewYAWLRoles_width + 5);
-
-                this.btn_importYAWLRoles.Location = new Point(10 + richBoxDisplayYAWL_width, 25);
-                this.btn_importYAWLRoles.Size = new Size(treeViewYAWLRoles_width, 30);
-
-                this.treeView_displayYAWLRoles.Location = new Point(10 + richBoxDisplayYAWL_width, 60);
-                this.treeView_displayYAWLRoles.Size = new Size(treeViewYAWLRoles_width, height_yawl - 65);
-            }
-
-            this.btn_importGraphical.Location = new Point(5, 25);
-            this.btn_importGraphical.Size = new Size(100, 30);
-
-            this.textBox_GraphicalImportedPath.Location = new Point(110, 30);
-            this.textBox_GraphicalImportedPath.Size = new Size(richBoxDisplayYAWL_width - 105, 22);
-
-            this.richTextBox_displayGraphical.Location = new Point(5, 60);
-            this.richTextBox_displayGraphical.Size = new Size(richBoxDisplayYAWL_width, height_yawl - 65);
-            
-
-            
-        }
         private void displayYawlRolesTree()
         {
             treeView_displayYAWLRoles.BeginUpdate();
@@ -162,218 +128,66 @@ namespace Graphical2SmartContact_SCG
         }
         #endregion
 
-        #region Content checking
-        private void btn_fromGraphical2Checking_Click(object sender, EventArgs e)
-        {
-            treeView_Checking.BeginUpdate();
-            treeView_Checking.Nodes.Clear();
-            if (graphicalParser.allFunctions.Count > 0 && treeView_displayYAWLRoles.Nodes.Count>0)
-            {
-                //add data definition
-                /*var definedEnums_node = treeView_table.Nodes.Add("Defined Data Structure");
-                definedEnums_node.NodeFont = new Font("Arial", 9, FontStyle.Bold);
-                foreach (var definedenum in graphicalParser.allDefinedEnums)
-                {
-                    var definedenum_node = definedEnums_node.Nodes.Add(definedenum.name);
-                    definedenum_node.NodeFont = new Font("Arial", 9);
-                    for (int i = 0; i< definedenum.elements.Count(); i++)
-                    {
-                        definedenum_node.Nodes.Add(definedenum.elements[i]);
-                    }
-                }*/
-                //add local variables
-                var localVaris_node = treeView_Checking.Nodes.Add("Local Variables");
-                localVaris_node.NodeFont = new Font("Arial", 9, FontStyle.Bold);
-                foreach (var localvari_yawl in graphicalParser.allLocalVariables)
-                {
-                    var localvari_node = localVaris_node.Nodes.Add(localvari_yawl.name);
-                    localvari_node.NodeFont = new Font("Arial", 9);
-                    localvari_node.Nodes.Add("Type:" + localvari_yawl.type);
-                    localvari_node.Nodes.Add("Value:" + localvari_yawl.defaultVaule);
-                }
-                //add modifiers and flows
-                var roles_node = treeView_Checking.Nodes.Add("Roles");
-                roles_node.NodeFont = new Font("Arial", 9, FontStyle.Bold);
-                foreach (var role_yawl in graphicalParser.allRoles)
-                {
-                    //add parameters to modifier
-                    var role_node = roles_node.Nodes.Add(role_yawl.name);
-                    role_node.NodeFont = new Font("Arial", 9);
-                    var strRoleTypes = "Types: ";
-                    for (int i = 0; i < role_yawl.actionTypes.Count; i++)
-                    {
-                        if (i > 0) { strRoleTypes += ", "; }
-                        strRoleTypes += role_yawl.actionTypes[i];
-                    }
-                    role_node.Nodes.Add(strRoleTypes);
-                    role_node.Nodes.Add("address: " + role_yawl.address);
-                    role_node.Nodes.Add("id: " + role_yawl.id);
-                    var strRoleTasksName = "tasks: ";
-                    for(int i = 0; i < role_yawl.functionNames.Count; i++)
-                    {
-                        if(i > 0) 
-                        { 
-                            strRoleTasksName += ", "; 
-                        }
-                        strRoleTasksName += role_yawl.functionNames[i];
-                    }
-                    role_node.Nodes.Add(strRoleTasksName);
-                }
-                foreach(var multiRoles in graphicalParser.allMultiRoles)
-                {
-                    var strMultiRolesRow = "MultiRoles: (";
-                    for(int i=0; i<multiRoles.roles.Count; i++)
-                    {
-                        if(i>0)
-                        {
-                            strMultiRolesRow += ", ";
-                        }
-                        strMultiRolesRow += multiRoles.roles[i].name;
-
-                    }
-                    strMultiRolesRow += ")";
-                    roles_node.Nodes.Add(strMultiRolesRow);
-                }
-                /*var modifiers_node = treeView_table.Nodes.Add("Modifiers");
-                modifiers_node.NodeFont = new Font("Arial", 9, FontStyle.Bold);
-                foreach (var modifier_yawl in graphicalParser.allModifiers)
-                {
-                    //add parameters to modifier
-                    string temp_modifier_nameWithVariables = modifier_yawl.name+"(";
-                    for(int i =0; i< modifier_yawl.inputVaris.Count;i++)
-                    {
-                        if(i>0)
-                        {
-                            temp_modifier_nameWithVariables += ",";
-                        }
-                        temp_modifier_nameWithVariables += modifier_yawl.inputVaris[i].name;
-                    }
-                    temp_modifier_nameWithVariables += ")";
-
-                    var modifier_node = modifiers_node.Nodes.Add(temp_modifier_nameWithVariables);
-                    modifier_node.NodeFont = new Font("Arial", 9);
-                    modifier_node.Nodes.Add(modifier_yawl.condition);
-                    modifier_node.Nodes.Add(modifier_yawl.errorString);
-                }*/
-                //add flows
-                var flows_node = treeView_Checking.Nodes.Add("Process Flows");
-                flows_node.NodeFont = new Font("Arial", 9, FontStyle.Bold);
-                foreach (var flow in graphicalParser.allFlows)
-                {
-                    var flow_node = flows_node.Nodes.Add(flow.currentProcessName);
-                    flow_node.NodeFont = new Font("Arial", 9);
-                    if (flow.nextProcesses.Count > 0)
-                    {
-                        foreach (var nextProcess in flow.nextProcesses)
-                        {
-                            var nextProcess_node = flow_node.Nodes.Add("Next process: " + nextProcess.processName);
-                            if (nextProcess.condition != null)
-                            {
-                                nextProcess_node.Nodes.Add(nextProcess.condition);
-                            }
-                        }
-                    }
-                    if (flow.splitOperation != null)
-                    {
-                        flow_node.Nodes.Add(flow.splitOperation);
-                    }
-                    if(flow.currentProcessRoles.Count>0)
-                    {
-                        foreach(var role in flow.currentProcessRoles)
-                        {
-                            var role_node = flow_node.Nodes.Add("Role: " + role.name);
-                            role_node.Nodes.Add("address: " + role.address);
-                            role_node.Nodes.Add("id: " + role.id);
-                        }
-                    }
-                }
-
-                //add functions
-                var functions_node = treeView_Checking.Nodes.Add("Tasks(Functions)");
-                functions_node.NodeFont = new Font("Arial", 9, FontStyle.Bold);
-                foreach (var function in graphicalParser.allFunctions)
-                {
-                    var function_node = functions_node.Nodes.Add(function.name);
-                    function_node.NodeFont = new Font("Arial", 9);
-                    //modifiers
-                    //var funmodifiers_node = function_node.Nodes.Add("Role");
-                    /*foreach (var funmodifier in function.modifiers)
-                    {
-                        string funmodi_values = funmodifier.name + "(";
-                        for (int i = 0; i < funmodifier.inputVaris.Count(); i++)
-                        {
-                            if (i > 0)
-                            {
-                                funmodi_values += ", ";
-                            }
-                            funmodi_values += funmodifier.inputVaris[i].defaultVaule;
-                        }
-                        funmodi_values += ")";
-                        funmodifiers_node.Nodes.Add(funmodi_values);
-                    }*/
-                    var funType_node = function_node.Nodes.Add("Type: " + function.actionType);
-                    //Roles
-                    var funRoles_node = function_node.Nodes.Add("Roles");
-                    foreach (var funRole in function.processFlow.currentProcessRoles)
-                    {
-                        var role_node = funRoles_node.Nodes.Add("Role: " + funRole.name);
-                        role_node.Nodes.Add("address: " + funRole.address);
-                        role_node.Nodes.Add("id: " + funRole.id);
-                    }
-                    //inputs
-                    var funinputs_node = function_node.Nodes.Add("Input variables");
-                    foreach (var funinput in function.inputVariables)
-                    {
-                        funinputs_node.Nodes.Add(funinput.name);
-                    }
-                    //outputs
-                    var funonputs_node = function_node.Nodes.Add("Output variables");
-                    foreach (var funonput in function.outputVariables)
-                    {
-                        funonputs_node.Nodes.Add(funonput.name);
-                    }
-                    //inOutputs
-                    /*var funinoutputs_node = function_node.Nodes.Add("In/output variables");
-                    foreach (var funinoutput in function.inOutVariables)
-                    {
-                        funinoutputs_node.Nodes.Add(funinoutput.name);
-                    }*/
-                }
-            }
-            treeView_Checking.EndUpdate();
-        }
-        private void btn_fromChecking2SC_Click(object sender, EventArgs e)
+        #region Smart contract language
+        string strContractsFolderName = "contracts_";
+        private void btn_fromGraphical2SC_Click(object sender, EventArgs e)
         {
             treeView_SCfileTree.BeginUpdate();
             treeView_SCfileTree.Nodes.Clear();
-            if(graphicalParser.allFunctions.Count>0)
+            if (graphicalParser.allFunctions.Count > 0)
             {
-                var contracts_node = treeView_SCfileTree.Nodes.Add("contracts");
+                //Automated generate contract folder name
+                if(strContractsFolderName == "contracts_")
+                {
+                    strContractsFolderName += Guid.NewGuid().ToString().GetHashCode().ToString("x"); 
+                }
+                var contracts_node = treeView_SCfileTree.Nodes.Add(strContractsFolderName);
                 solidityGenerator.generateSolidityText(graphicalParser);
-                foreach(var scFile in solidityGenerator.allSolidityFiles)
+                
+                foreach (var scFile in solidityGenerator.allSolidityFiles)
                 {
                     contracts_node.Nodes.Add(scFile.contractName);
                 }
             }
             treeView_SCfileTree.EndUpdate();
         }
-        private void AutosizeChecking(int width_table, int height_table)
-        {
-            int treeviewTable_width = width_table - 10;//(2*width_table) / 3 - 10;
-            this.treeView_Checking.Location = new Point(5, 25);
-            this.treeView_Checking.Size = new Size(treeviewTable_width, height_table - 30);
-
-            //this.richTextBox_displayTable.Location = new Point(treeviewTable_width + 15, 25);
-            //this.richTextBox_displayTable.Size = new Size(width_table - treeviewTable_width - 20, height_table - 30);
-        }
-        #endregion
-
-        #region Smart contract language
         private void btn_exportSolidity_Click(object sender, EventArgs e)
         {
-            if (treeView_SCfileTree.SelectedNode != null)
+            //export the whole folder
+            using (var fbd = new FolderBrowserDialog())
             {
-                if(treeView_SCfileTree.SelectedNode.Text != "contracts")
+                DialogResult result = fbd.ShowDialog();
+
+                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                {
+                    //new a folder name "contracts"
+                    var newFolder = fbd.SelectedPath + "\\"+ strContractsFolderName;
+                    //MessageBox.Show("fbd.SelectedPath: " + newFolder, "Message");
+                    if (!Directory.Exists(newFolder))
+                    {
+                        Directory.CreateDirectory(newFolder);
+                        foreach (var file in solidityGenerator.allSolidityFiles)
+                        {
+                            var fileName = file.contractName + ".sol";
+                            var filePath = newFolder + "\\" + fileName;
+                            writeFile(filePath, file);
+                        }
+                        textBox_SCExportedPath.Text = newFolder;
+                    }
+                    else
+                    {
+                        MessageBox.Show("The folder: " + newFolder + " exists.", "Error in exporting",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+
+                    /*string[] files = Directory.GetFiles();
+
+                    */
+                }
+            }
+            /*if (treeView_SCfileTree.SelectedNode != null)
+            {
+                if(!treeView_SCfileTree.SelectedNode.Text.Contains("contracts_"))
                 {
                     foreach (var scFile in solidityGenerator.allSolidityFiles)
                     {
@@ -385,60 +199,13 @@ namespace Graphical2SmartContact_SCG
                 }
                 else
                 {
-                    using (var fbd = new FolderBrowserDialog())
-                    {
-                        DialogResult result = fbd.ShowDialog();
-
-                        if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
-                        {
-                            //new a folder name "contracts"
-                            var newFolder = fbd.SelectedPath + "\\contracts";
-                            //MessageBox.Show("fbd.SelectedPath: " + newFolder, "Message");
-                            if(!Directory.Exists(newFolder))
-                            {
-                                Directory.CreateDirectory(newFolder);
-                                foreach(var file in solidityGenerator.allSolidityFiles)
-                                {
-                                    var fileName = file.contractName + ".sol";
-                                    var filePath = newFolder + "\\" + fileName;
-                                    writeFile(filePath, file);
-                                }
-                                textBox_SCExportedPath.Text = newFolder;
-                            }
-                            else
-                            {
-                                MessageBox.Show("The folder: " + newFolder + " exists.", "Error in exporting", 
-                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            }
-
-                            /*string[] files = Directory.GetFiles();
-
-                            */
-                        }
-                    }
                 } 
-            }
-            
+            }*/
+
         }
-        private void AutosizeSC(int width_solidity, int height_solidity)
-        {
-            int treeViewSCfolder_width = width_solidity / 7;
-            this.treeView_SCfileTree.Location = new Point(5, 25);
-            this.treeView_SCfileTree.Size = new Size(treeViewSCfolder_width, height_solidity - 65);
-
-            this.richTextBox_displaySC.Location = new Point(10 + treeViewSCfolder_width, 25);
-            this.richTextBox_displaySC.Size = new Size(width_solidity - treeViewSCfolder_width - 15, height_solidity - 65);
-
-            this.btn_exportSC.Location = new Point(5, height_solidity - 35);
-            this.btn_exportSC.Size = new Size(110, 30);
-
-            this.textBox_SCExportedPath.Location = new Point(120, height_solidity - 30);
-            this.textBox_SCExportedPath.Size = new Size(width_solidity - 125, 22);
-        }
-
         private void treeView_SCfileTree_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            if(e.Node.Text == "contracts")
+            if(e.Node.Text.Contains("contracts_"))
             {
                 richTextBox_displaySC.Text = "You can export the contracts folder with:\n";
                 foreach(TreeNode childNode in e.Node.Nodes)
@@ -460,6 +227,72 @@ namespace Graphical2SmartContact_SCG
             
         }
 
+        #endregion
+
+        #region Smart contract checking
+        private void btn_SC_Checking_Click(object sender, EventArgs e)
+        {
+            if(solidityGenerator.allSolidityFiles.Count>0)
+            {
+                // from smart contract generator to smart contract checking
+                
+                treeView_Checking.BeginUpdate();
+                treeView_Checking.Nodes.Clear();
+                //Step 1: generate SC tree table
+                var contracts_node = treeView_Checking.Nodes.Add("contracts");
+                foreach (var contractTemp in solidityGenerator.allSolidityFiles)
+                {
+                    var contract_node = contracts_node.Nodes.Add(contractTemp.contractName);
+                    contract_node.NodeFont = new Font("Arial", 8, FontStyle.Bold);
+                    //parent contracts
+                    if (contractTemp.parentContracts.Count>0)
+                    {
+                        var parentContracts_node = contract_node.Nodes.Add("parent contacts");
+                        foreach(var parentC in contractTemp.parentContracts)
+                        {
+                            parentContracts_node.Nodes.Add(parentC);
+                        }
+                    }
+                    //state variables
+                    if (contractTemp.allVariables.Count > 0)
+                    {
+                        var variables_node = contract_node.Nodes.Add("state variables");
+                        foreach (var variableTemp in contractTemp.allVariables)
+                        {
+                            var variable_node = variables_node.Nodes.Add(variableTemp.variableName);
+                            variable_node.Nodes.Add("type:" + variableTemp.type);
+                            if(variableTemp.value!=null)
+                            {
+                                variable_node.Nodes.Add("value:" + variableTemp.value);
+                            }
+                        }
+                    }
+                    //modifiers
+
+                    //functions
+
+                    //enums
+                    if (contractTemp.allEnums.Count > 0)
+                    {
+                        var enums_node = contract_node.Nodes.Add("enums");
+                        foreach (var enumTemp in contractTemp.allEnums)
+                        {
+                            var enum_node = enums_node.Nodes.Add(enumTemp.enumName);
+                            foreach (var enumValueTemp in enumTemp.enumValues)
+                            {
+                                enum_node.Nodes.Add(enumValueTemp);
+                            }
+                        }
+                    }
+                }
+                treeView_Checking.EndUpdate();
+
+
+                //step 2: print out error messages
+
+                richTextBox_errorMassage.Text = smartContractChecking.printErrorMessage();
+            }
+        }
         #endregion
 
         #region generalFunctions
@@ -524,57 +357,6 @@ namespace Graphical2SmartContact_SCG
             writer.Close();
         }
 
-        private void Auto_Size()
-        {
-            //int groupBoxYAWL_width = (2*this.ClientSize.Width)/3 - 120;
-            int groupBoxGraphical_width = (3 * this.ClientSize.Width) / 4 - 135;
-            int groupBoxGraphical_height = (this.ClientSize.Height - 10) / 2;
-            this.groupBox_graphical.Location = new Point(5, 0);
-            this.groupBox_graphical.Size = new Size(groupBoxGraphical_width, groupBoxGraphical_height);
-            AutosizeGraphical(groupBoxGraphical_width, groupBoxGraphical_height);
-
-            int groupBoxSolidity_height = this.ClientSize.Height - groupBoxGraphical_height - 10;
-            this.groupBox_SC.Location = new Point(5, groupBoxGraphical_height + 10);
-            this.groupBox_SC.Size = new Size(groupBoxGraphical_width, groupBoxSolidity_height);
-            AutosizeSC(groupBoxGraphical_width, groupBoxSolidity_height);
-
-            int groupBoxTable_width = groupBoxGraphical_width / 3;
-            int groupBoxTable_height = this.ClientSize.Height - 10;
-            int groupBoxTable_x = this.ClientSize.Width - groupBoxTable_width - 5;
-            this.groupBox_checking.Location = new Point(groupBoxTable_x, 5);
-            this.groupBox_checking.Size = new Size(groupBoxTable_width, groupBoxTable_height);
-            AutosizeChecking(groupBoxTable_width, groupBoxTable_height);
-
-            //left button
-            int btnFromYAWL2Table_y = groupBoxGraphical_height / 2 - 15;
-            this.btn_fromGraphical2Checking.Location = new Point(groupBoxGraphical_width + 10, btnFromYAWL2Table_y);
-            this.btn_fromGraphical2Checking.Size = new Size(160, 80);
-
-            //right button
-            int btnFromTable2Solidity = this.ClientSize.Height - (groupBoxSolidity_height / 2) - 85;
-            this.btn_fromChecking2SC.Location = new Point(groupBoxGraphical_width + 10, btnFromTable2Solidity);
-            this.btn_fromChecking2SC.Size = new Size(160, 80);
-
-            //Arrows
-            // (x1,y1)                                              (x6,y1)
-            //   |                                                     /\
-            //  \/                                                      |
-            // (x1,y2)                                              (x6,y2)
-            //         (x2,y3) -> (x3,y3)        (x4,y3) -> (x5,y3)
-            /*int x1 = btnFromYAWL2Table_x + 75;
-            int x2 = btnFromYAWL2Table_x + 150;
-            int x3 = groupBoxTable_x;
-            int x4 = groupBoxTable_x + groupBoxTable_width;
-            int x5 = btnFromTable2Solidity_x;
-            int x6 = btnFromTable2Solidity_x + 75;
-            int y1 = groupBoxYAWL_height;
-            int y2 = btnFromYAWL2Table_y;
-            int y3 = btnFromYAWL2Table_y + 40;
-            this.Paint += delegate (object s2, PaintEventArgs e2)
-            {
-                this.MainForm_Paint(s2, e2, x1, x2, x3, x4, x5, x6, y1, y2, y3);
-            };*/
-        }
 
         /*private void MainForm_Paint(object sender, PaintEventArgs e, int x1, int x2, int x3, int x4, int x5, int x6,
             int y1, int y2, int y3)
@@ -605,5 +387,127 @@ namespace Graphical2SmartContact_SCG
 
         #endregion
 
+        #region AutoSize
+        private void Auto_Size()
+        {
+            //graphical representation group box
+            int groupBoxGraphical_width = (2 * this.ClientSize.Width) / 3 - 70;
+            int groupBoxGraphical_height = (this.ClientSize.Height - 55) / 2;
+            this.groupBox_graphical.Location = new Point(5, 0);
+            this.groupBox_graphical.Size = new Size(groupBoxGraphical_width, groupBoxGraphical_height);
+            AutosizeGraphical(groupBoxGraphical_width, groupBoxGraphical_height);
+
+            //btn: from graphical to sc
+            int btnFromGraphical2SC_x = groupBoxGraphical_width / 2 - 135;
+            int btnFromGraphical2SC_y = groupBoxGraphical_height + 5;
+            this.btn_fromGraphical2SC.Location = new Point(btnFromGraphical2SC_x, btnFromGraphical2SC_y);
+            this.btn_fromGraphical2SC.Size = new Size(280, 40);
+
+            //smart contract group box
+            int groupBoxSC_width = groupBoxGraphical_width;
+            int groupBoxSC_height = groupBoxGraphical_height;
+            this.groupBox_SC.Location = new Point(5, groupBoxGraphical_height + 50);
+            this.groupBox_SC.Size = new Size(groupBoxSC_width, groupBoxSC_height);
+            AutosizeSC(groupBoxSC_width, groupBoxSC_height);
+
+            //btn: from sc to checking
+            int btnFromSC2Checking_x = groupBoxSC_width + 10;
+            int btnFromSC2Checking_y = groupBoxGraphical_height + groupBoxSC_height / 2 ;
+            this.btn_SC2Checking.Location = new Point(btnFromSC2Checking_x, btnFromSC2Checking_y);
+            this.btn_SC2Checking.Size = new Size(85, 120);
+
+            //sc checking group box
+            int groupBoxTable_width = groupBoxGraphical_width / 2;
+            int groupBoxTable_height = this.ClientSize.Height - 40;
+            int groupBoxTable_x = this.ClientSize.Width - groupBoxTable_width - 5;
+            this.groupBox_checking.Location = new Point(groupBoxTable_x, 0);
+            this.groupBox_checking.Size = new Size(groupBoxTable_width, groupBoxTable_height);
+            AutosizeChecking(groupBoxTable_width, groupBoxTable_height);
+
+            //btn & textBox: export smart contract
+            this.btn_exportSC.Location = new Point(groupBoxSC_width + 10, this.ClientSize.Height-35);
+            this.btn_exportSC.Size = new Size(180, 30);
+            this.textBox_SCExportedPath.Location = new Point(groupBoxSC_width + 195, this.ClientSize.Height - 31);
+            this.textBox_SCExportedPath.Size = new Size(this.ClientSize.Width-groupBoxSC_width-200, 22);
+
+            //Arrows
+            // (x1,y1)                                              (x6,y1)
+            //   |                                                     /\
+            //  \/                                                      |
+            // (x1,y2)                                              (x6,y2)
+            //         (x2,y3) -> (x3,y3)        (x4,y3) -> (x5,y3)
+            /*int x1 = btnFromYAWL2Table_x + 75;
+            int x2 = btnFromYAWL2Table_x + 150;
+            int x3 = groupBoxTable_x;
+            int x4 = groupBoxTable_x + groupBoxTable_width;
+            int x5 = btnFromTable2Solidity_x;
+            int x6 = btnFromTable2Solidity_x + 75;
+            int y1 = groupBoxYAWL_height;
+            int y2 = btnFromYAWL2Table_y;
+            int y3 = btnFromYAWL2Table_y + 40;
+            this.Paint += delegate (object s2, PaintEventArgs e2)
+            {
+                this.MainForm_Paint(s2, e2, x1, x2, x3, x4, x5, x6, y1, y2, y3);
+            };*/
+        }
+
+        private void AutosizeGraphical(int width_yawl, int height_yawl)
+        {
+            int treeViewYAWLRoles_width = 0;
+            int richBoxDisplayYAWL_width = width_yawl - 10;
+            if (isBPMN)
+            {
+                this.btn_importYAWLRoles.Hide();
+                this.treeView_displayYAWLRoles.Hide();
+            }
+            else
+            {
+                this.btn_importYAWLRoles.Show();
+                this.treeView_displayYAWLRoles.Show();
+                treeViewYAWLRoles_width = (width_yawl - 15) / 4;
+                richBoxDisplayYAWL_width -= (treeViewYAWLRoles_width + 5);
+
+                this.btn_importYAWLRoles.Location = new Point(10 + richBoxDisplayYAWL_width, 25);
+                this.btn_importYAWLRoles.Size = new Size(treeViewYAWLRoles_width, 30);
+
+                this.treeView_displayYAWLRoles.Location = new Point(10 + richBoxDisplayYAWL_width, 60);
+                this.treeView_displayYAWLRoles.Size = new Size(treeViewYAWLRoles_width, height_yawl - 65);
+            }
+
+            this.btn_importGraphical.Location = new Point(5, 25);
+            this.btn_importGraphical.Size = new Size(100, 30);
+
+            this.textBox_GraphicalImportedPath.Location = new Point(110, 30);
+            this.textBox_GraphicalImportedPath.Size = new Size(richBoxDisplayYAWL_width - 105, 22);
+
+            this.richTextBox_displayGraphical.Location = new Point(5, 60);
+            this.richTextBox_displayGraphical.Size = new Size(richBoxDisplayYAWL_width, height_yawl - 65);
+        }
+
+        private void AutosizeSC(int width_solidity, int height_solidity)
+        {
+            int treeViewSCfolder_width = width_solidity / 7;
+            this.treeView_SCfileTree.Location = new Point(5, 25);
+            this.treeView_SCfileTree.Size = new Size(treeViewSCfolder_width, height_solidity - 30);
+
+            this.richTextBox_displaySC.Location = new Point(10 + treeViewSCfolder_width, 25);
+            this.richTextBox_displaySC.Size = new Size(width_solidity - treeViewSCfolder_width - 15, height_solidity - 30);
+        }
+
+        private void AutosizeChecking(int width_table, int height_table)
+        {
+            int treeviewTable_width = (width_table - 15) / 2;//(2*width_table) / 3 - 10;
+            this.treeView_Checking.Location = new Point(5, 45);
+            this.treeView_Checking.Size = new Size(treeviewTable_width, height_table - 50);
+
+            this.label_errorMessage.Location = new Point(treeviewTable_width + 10, 25);
+            this.richTextBox_errorMassage.Location = new Point(treeviewTable_width + 10, 45);
+            this.richTextBox_errorMassage.Size = new Size(treeviewTable_width, height_table - 50);
+
+
+            //this.richTextBox_displayTable.Location = new Point(treeviewTable_width + 15, 25);
+            //this.richTextBox_displayTable.Size = new Size(width_table - treeviewTable_width - 20, height_table - 30);
+        }
+        #endregion
     }
 }

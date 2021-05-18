@@ -57,6 +57,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SmartContractChecking.cs" />
     <Compile Include="SmartContractGenerator.cs" />
     <Compile Include="GraphicalParser.cs" />
     <EmbeddedResource Include="MainForm.resx">
