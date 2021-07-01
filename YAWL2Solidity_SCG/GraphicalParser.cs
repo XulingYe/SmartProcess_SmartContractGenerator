@@ -10,11 +10,11 @@ namespace Graphical2SmartContact_SCG
     public class GraphicalParser
     {
         #region DataTypes
-        public class Variable
+        public class SCGVariable
         {
             public string name;
             public string type;
-            public string defaultVaule;
+            public string value;
         };
         public class Role
         {
@@ -33,26 +33,26 @@ namespace Graphical2SmartContact_SCG
         }
         public class DefineEnum
         {
-            public string name;
-            public List<string> elements = new List<string>();
+            public string enumName;
+            public List<string> enumValues = new List<string>();
         };
-        public class Modifier
+        /*public class Modifier
         {
             public string name;
             public string condition;
             public string errorString;
             public List<Variable> inputVaris = new List<Variable>();
-        };
-        public class Function
+        };*/
+        public class YawlTask
         {
             public string name;
-            public List<Variable> inputVariables = new List<Variable>();
-            public List<Variable> outputVariables = new List<Variable>();
-            public List<Variable> inOutVariables = new List<Variable>();
-            public List<Modifier> modifiers = new List<Modifier>();
+            public List<SCGVariable> inputVariables = new List<SCGVariable>();
+            public List<SCGVariable> outputVariables = new List<SCGVariable>();
+            public List<SCGVariable> inOutVariables = new List<SCGVariable>();
+            //public List<Modifier> modifiers = new List<Modifier>();
             public Flow processFlow = new Flow();
             public string actionType; //indicate function type. Could be check, change or pay.
-            public Variable payTypeVariable; // indicate the variable of the payment. The type of this variable must be uint. 
+            public SCGVariable payTypeVariable; // indicate the variable of the payment. The type of this variable must be uint. 
         };
         public class Flow
         {
@@ -68,10 +68,10 @@ namespace Graphical2SmartContact_SCG
         };
         #endregion
 
-        public List<Variable> allLocalVariables = new List<Variable>();
+        public List<SCGVariable> allLocalVariables = new List<SCGVariable>();
         public List<DefineEnum> allDefinedEnums = new List<DefineEnum>();
-        public List<Modifier> allModifiers = new List<Modifier>();
-        public List<Function> allFunctions = new List<Function>();
+        //public List<Modifier> allModifiers = new List<Modifier>();
+        public List<YawlTask> allTasks = new List<YawlTask>();
         public List<Flow> allFlows = new List<Flow>();
         public List<Role> allRoles = new List<Role>();
         public List<MultiRoles> allMultiRoles = new List<MultiRoles>();
@@ -83,8 +83,8 @@ namespace Graphical2SmartContact_SCG
             allLocalVariables.Clear();
             allDefinedEnums.Clear();
             allFlows.Clear();
-            allFunctions.Clear();
-            allModifiers.Clear();
+            allTasks.Clear();
+            //allModifiers.Clear();
             allRoles.Clear();
 
             if (!isBPMN)
@@ -210,7 +210,7 @@ namespace Graphical2SmartContact_SCG
 
         void addLocalVariable(XmlElement e_LVinRootNet, string originalType)
         {
-            Variable lv_temp = new Variable();
+            SCGVariable lv_temp = new SCGVariable();
             //name
             XmlNode lvName_node = e_LVinRootNet.GetElementsByTagName("name").Item(0);
             if (lvName_node != null)
@@ -239,13 +239,13 @@ namespace Graphical2SmartContact_SCG
             XmlNode lvValue_node = e_LVinRootNet.GetElementsByTagName("initialValue").Item(0);
             if (lvValue_node != null)
             {
-                if(allDefinedEnums.Exists(x=>x.name==lv_temp.type)&& !lvValue_node.InnerXml.Contains(lv_temp.type))
+                if(allDefinedEnums.Exists(x=>x.enumName==lv_temp.type)&& !lvValue_node.InnerXml.Contains(lv_temp.type))
                 {
-                    lv_temp.defaultVaule = lv_temp.type + "." + lvValue_node.InnerXml;
+                    lv_temp.value = lv_temp.type + "." + lvValue_node.InnerXml;
                 }
                 else
                 {
-                    lv_temp.defaultVaule = lvValue_node.InnerXml;
+                    lv_temp.value = lvValue_node.InnerXml;
                 }
                 
             }
@@ -253,6 +253,7 @@ namespace Graphical2SmartContact_SCG
             allLocalVariables.Add(lv_temp);
         }
 
+        /*
         void addModifier(XmlElement e_LVinRootNet)
         {
             Modifier m_temp = new Modifier();
@@ -313,7 +314,7 @@ namespace Graphical2SmartContact_SCG
                 }
             }
             allModifiers.Add(m_temp);
-        }
+        }*/
 
         void addProcessFlow(XmlNode flow_node)
         {
@@ -475,12 +476,12 @@ namespace Graphical2SmartContact_SCG
 
         void addFunction(XmlNode decomposition_node)
         {
-            Function function_temp = new Function();
-            function_temp.name = decomposition_node.Attributes.GetNamedItem("id").InnerXml;
-            var flow = allFlows.Find(x => x.currentProcessName == function_temp.name);
+            YawlTask task_temp = new YawlTask();
+            task_temp.name = decomposition_node.Attributes.GetNamedItem("id").InnerXml;
+            var flow = allFlows.Find(x => x.currentProcessName == task_temp.name);
             if (flow != null)
             {
-                function_temp.processFlow = flow;
+                task_temp.processFlow = flow;
 
                 
                 foreach(XmlNode para in decomposition_node.ChildNodes)
@@ -499,7 +500,7 @@ namespace Graphical2SmartContact_SCG
                                 #region modifiers in function
                                 /*//modifiers
                                 var paraModif = allModifiers.Find(x => x.name == paraName.InnerText);
-                                if(!function_temp.modifiers.Contains(paraModif))
+                                if(!task_temp.modifiers.Contains(paraModif))
                                 {
                                     XmlNode paraValue = e_para.GetElementsByTagName("defaultValue").Item(0);
                                     if(paraValue!=null)
@@ -514,12 +515,12 @@ namespace Graphical2SmartContact_SCG
                                             paraModif.inputVaris[0].defaultVaule = valueStr;
                                         }
                                     }
-                                    function_temp.modifiers.Add(paraModif);
+                                    task_temp.modifiers.Add(paraModif);
                                 }*/
                                 #endregion
-                                if (function_temp.actionType == null || function_temp.actionType == "")
+                                if (task_temp.actionType == null || task_temp.actionType == "")
                                 {
-                                    function_temp.actionType = strParaName;
+                                    task_temp.actionType = strParaName;
                                     if(strParaName=="pay")
                                     {
                                         XmlNode paraValueNode = e_para.GetElementsByTagName("defaultValue").Item(0);
@@ -528,7 +529,7 @@ namespace Graphical2SmartContact_SCG
                                             var findPayVariable = allLocalVariables.Find(x => x.name == paraValueNode.InnerText);
                                             if(findPayVariable!=null)
                                             {
-                                                function_temp.payTypeVariable = findPayVariable;
+                                                task_temp.payTypeVariable = findPayVariable;
                                             }
                                         }
                                     }
@@ -545,29 +546,29 @@ namespace Graphical2SmartContact_SCG
                                 {
                                     if (para.Name == "inputParam")
                                     {
-                                        var findResult = function_temp.inputVariables.Find(x => x.name == strParaName);
+                                        var findResult = task_temp.inputVariables.Find(x => x.name == strParaName);
                                         if (findResult != null)
                                         {
-                                            function_temp.inputVariables.Remove(findResult);
-                                            function_temp.inOutVariables.Add(findResult);
+                                            task_temp.inputVariables.Remove(findResult);
+                                            task_temp.inOutVariables.Add(findResult);
                                         }
                                         else
                                         {
-                                            function_temp.outputVariables.Add(paraVari);
+                                            task_temp.outputVariables.Add(paraVari);
                                         }
                                     }
                                     else if (para.Name == "outputParam")
                                     {
 
-                                        var findResult = function_temp.outputVariables.Find(x => x.name == strParaName);
+                                        var findResult = task_temp.outputVariables.Find(x => x.name == strParaName);
                                         if (findResult != null)
                                         {
-                                            function_temp.outputVariables.Remove(findResult);
-                                            function_temp.inOutVariables.Add(findResult);
+                                            task_temp.outputVariables.Remove(findResult);
+                                            task_temp.inOutVariables.Add(findResult);
                                         }
                                         else
                                         {
-                                            function_temp.inputVariables.Add(paraVari);
+                                            task_temp.inputVariables.Add(paraVari);
                                         }
                                     }
                                 }
@@ -576,7 +577,7 @@ namespace Graphical2SmartContact_SCG
                     }
                 }
             }
-            allFunctions.Add(function_temp);
+            allTasks.Add(task_temp);
         }
 
         public void parseYawlRoles(string text)
@@ -607,7 +608,7 @@ namespace Graphical2SmartContact_SCG
                                 //put the function names and types in all roles
                                 foreach(var functionName in foundRole.functionNames)
                                 {
-                                    var funTemp = allFunctions.Find(x => x.name == functionName);
+                                    var funTemp = allTasks.Find(x => x.name == functionName);
                                     if(funTemp != null && funTemp.processFlow != null)
                                     {
                                         foreach(var processTempRole in funTemp.processFlow.currentProcessRoles)

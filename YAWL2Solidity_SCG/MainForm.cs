@@ -134,7 +134,7 @@ namespace Graphical2SmartContact_SCG
         {
             treeView_SCfileTree.BeginUpdate();
             treeView_SCfileTree.Nodes.Clear();
-            if (graphicalParser.allFunctions.Count > 0)
+            if (graphicalParser.allTasks.Count > 0 && treeView_displayYAWLRoles.Nodes.Count>0)
             {
                 //Automated generate contract folder name
                 if(strContractsFolderName == "contracts_")
@@ -247,19 +247,19 @@ namespace Graphical2SmartContact_SCG
                     //parent contracts
                     if (contractTemp.parentContracts.Count>0)
                     {
-                        var parentContracts_node = contract_node.Nodes.Add("parent contacts");
+                        var parentContracts_node = contract_node.Nodes.Add("parent contracts");
                         foreach(var parentC in contractTemp.parentContracts)
                         {
                             parentContracts_node.Nodes.Add(parentC);
                         }
                     }
                     //state variables
-                    if (contractTemp.allVariables.Count > 0)
+                    if (contractTemp.stateVariables.Count > 0)
                     {
                         var variables_node = contract_node.Nodes.Add("state variables");
-                        foreach (var variableTemp in contractTemp.allVariables)
+                        foreach (var variableTemp in contractTemp.stateVariables)
                         {
-                            var variable_node = variables_node.Nodes.Add(variableTemp.variableName);
+                            var variable_node = variables_node.Nodes.Add(variableTemp.name);
                             variable_node.Nodes.Add("type:" + variableTemp.type);
                             if(variableTemp.value!=null)
                             {
@@ -268,14 +268,29 @@ namespace Graphical2SmartContact_SCG
                         }
                     }
                     //modifiers
-
+                    if(contractTemp.modifiers.Count > 0)
+                    {
+                        var modifiers_node = contract_node.Nodes.Add("modifiers");
+                        foreach (var modifierTemp in contractTemp.modifiers)
+                        {
+                            var modifier_node = modifiers_node.Nodes.Add(modifierTemp.name);
+                            if (modifierTemp.inputParam != null)
+                            {
+                                modifier_node.Nodes.Add("inputParam:" + modifierTemp.inputParam);
+                            } 
+                            if (modifierTemp.statementsText != null)
+                            {
+                                modifier_node.Nodes.Add("statements:" + modifierTemp.statementsText);
+                            }
+                        }
+                    }
                     //functions
 
                     //enums
-                    if (contractTemp.allEnums.Count > 0)
+                    if (contractTemp.enums.Count > 0)
                     {
                         var enums_node = contract_node.Nodes.Add("enums");
-                        foreach (var enumTemp in contractTemp.allEnums)
+                        foreach (var enumTemp in contractTemp.enums)
                         {
                             var enum_node = enums_node.Nodes.Add(enumTemp.enumName);
                             foreach (var enumValueTemp in enumTemp.enumValues)
