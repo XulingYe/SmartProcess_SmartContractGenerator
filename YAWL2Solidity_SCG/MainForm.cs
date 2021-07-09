@@ -240,15 +240,17 @@ namespace Graphical2SmartContact_SCG
                 treeView_Checking.Nodes.Clear();
                 //Step 1: generate SC tree table
                 var contracts_node = treeView_Checking.Nodes.Add("contracts");
+                contracts_node.NodeFont = new Font("Arial", 9);
                 foreach (var contractTemp in solidityGenerator.allSolidityFiles)
                 {
                     var contract_node = contracts_node.Nodes.Add(contractTemp.contractName);
-                    contract_node.NodeFont = new Font("Arial", 8, FontStyle.Bold);
+                    contract_node.NodeFont = new Font("Arial", 9, FontStyle.Bold);
                     //parent contracts
                     if (contractTemp.parentContracts.Count>0)
                     {
-                        var parentContracts_node = contract_node.Nodes.Add("parent contracts");
-                        foreach(var parentC in contractTemp.parentContracts)
+                        var parentContracts_node = contract_node.Nodes.Add("parent contract(s)");
+                        parentContracts_node.NodeFont = new Font("Arial", 8.5f, FontStyle.Bold);
+                        foreach (var parentC in contractTemp.parentContracts)
                         {
                             parentContracts_node.Nodes.Add(parentC);
                         }
@@ -257,6 +259,7 @@ namespace Graphical2SmartContact_SCG
                     if (contractTemp.stateVariables.Count > 0)
                     {
                         var variables_node = contract_node.Nodes.Add("state variables");
+                        variables_node.NodeFont = new Font("Arial", 8.5f, FontStyle.Bold);
                         foreach (var variableTemp in contractTemp.stateVariables)
                         {
                             var variable_node = variables_node.Nodes.Add(variableTemp.name);
@@ -271,25 +274,77 @@ namespace Graphical2SmartContact_SCG
                     if(contractTemp.modifiers.Count > 0)
                     {
                         var modifiers_node = contract_node.Nodes.Add("modifiers");
+                        modifiers_node.NodeFont = new Font("Arial", 8.5f, FontStyle.Bold);
                         foreach (var modifierTemp in contractTemp.modifiers)
                         {
                             var modifier_node = modifiers_node.Nodes.Add(modifierTemp.name);
-                            if (modifierTemp.inputParam != null)
+                            if (modifierTemp.inputParam.Count > 0)
                             {
-                                modifier_node.Nodes.Add("inputParam:" + modifierTemp.inputParam);
+                                var modPara_node = modifier_node.Nodes.Add("input parameters");
+                                foreach(var modPara in modifierTemp.inputParam)
+                                {
+                                    modPara_node.Nodes.Add(modPara.type + " " + modPara.name);
+                                }
                             } 
                             if (modifierTemp.statementsText != null)
                             {
-                                modifier_node.Nodes.Add("statements:" + modifierTemp.statementsText);
+                                var modstate = modifier_node.Nodes.Add("statements");
+                                modstate.Nodes.Add(modifierTemp.statementsText);
                             }
                         }
                     }
                     //functions
-
+                    if (contractTemp.functions.Count > 0)
+                    {
+                        var functions_node = contract_node.Nodes.Add("functions");
+                        functions_node.NodeFont = new Font("Arial", 8.5f, FontStyle.Bold);
+                        foreach (var functionTemp in contractTemp.functions)
+                        {
+                            var function_node = functions_node.Nodes.Add(functionTemp.name);
+                            if (functionTemp.inputParam.Count>0)
+                            {
+                                var funPara_node = function_node.Nodes.Add("input parameters");
+                                foreach(var funPara in functionTemp.inputParam)
+                                {
+                                    funPara_node.Nodes.Add(funPara.type + " " + funPara.name);
+                                }
+                            }
+                            if (functionTemp.calledModifiers.Count > 0)
+                            {
+                                var funmodi_node = function_node.Nodes.Add("called modifiers");
+                                foreach (var funmodi in functionTemp.calledModifiers)
+                                {
+                                    funmodi_node.Nodes.Add(funmodi);
+                                }
+                            }
+                            if (functionTemp.keywords.Count > 0)
+                            {
+                                var funkey_node = function_node.Nodes.Add("keywords");
+                                foreach (var funkey in functionTemp.keywords)
+                                {
+                                    funkey_node.Nodes.Add(funkey);
+                                }
+                            }
+                            if (functionTemp.returnVaris.Count > 0)
+                            {
+                                var funretV_node = function_node.Nodes.Add("return variables");
+                                foreach (var funretV in functionTemp.returnVaris)
+                                {
+                                    funretV_node.Nodes.Add(funretV.type + " " + funretV.name);
+                                }
+                            }
+                            if (functionTemp.statementsText != null)
+                            {
+                                var funstate = function_node.Nodes.Add("statements");
+                                funstate.Nodes.Add(functionTemp.statementsText);
+                            }
+                        }
+                    }
                     //enums
                     if (contractTemp.enums.Count > 0)
                     {
                         var enums_node = contract_node.Nodes.Add("enums");
+                        enums_node.NodeFont = new Font("Arial", 8.5f, FontStyle.Bold);
                         foreach (var enumTemp in contractTemp.enums)
                         {
                             var enum_node = enums_node.Nodes.Add(enumTemp.enumName);

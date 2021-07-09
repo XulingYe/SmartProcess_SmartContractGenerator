@@ -28,16 +28,22 @@ namespace Graphical2SmartContact_SCG
         public class Modifier
         {
             public string name;
-            public string inputParam;
+            public List<Parameter> inputParam = new List<Parameter>();
             public string statementsText;
         };
+        public class Parameter
+        {
+            public string name;
+            public string type;
+        };
+
         public class Function
         {
             public string name;
-            public string inputParam;
-            public string calledModifiers;
-            public string keywords;
-            public string returnVaris;
+            public List<Parameter> inputParam = new List<Parameter>();
+            public List<string> calledModifiers = new List<string>();
+            public List<string> keywords = new List<string>();
+            public List<Parameter> returnVaris = new List<Parameter>();
             public string statementsText;
         }
         public List<SolidityFile> allSolidityFiles = new List<SolidityFile>();
@@ -137,7 +143,7 @@ namespace Graphical2SmartContact_SCG
                 //modifier
                 Modifier tempModi = new Modifier();
                 strRolesInModifier += "    modifier Only" + role_graphical.name + "(){\n        ";
-                tempModi.name = role_graphical.name;
+                tempModi.name = "Only" + role_graphical.name;
                 tempModi.statementsText = "require(msg.sender == " + role_graphical.name
                     + ",\" Only " + role_graphical.name + " can call this function.\");";
                 strRolesInModifier += tempModi.statementsText;
@@ -212,10 +218,11 @@ namespace Graphical2SmartContact_SCG
             sFile.fileAllText += "\n//Functions\n";
             foreach (var function_yawl in graphicalP.allTasks)
             {
-                sFile.fileAllText += addSolidityFunction(function_yawl, graphicalP.allLocalVariables);
+                //Function fun_temp;
+                sFile.fileAllText += addSolidityFunction(function_yawl, graphicalP.allLocalVariables, out Function fun_temp);
+                sFile.functions.Add(fun_temp);
             }
             sFile.fileAllText += "}";
-
             allSolidityFiles.Add(sFile);
         }
 
@@ -262,12 +269,21 @@ namespace Graphical2SmartContact_SCG
             file.stateVariables.Add(variTemp);
 
             //process flow modifier
-            file.fileAllText += "    modifier inProcessFlow(ProcessFlow _processFlow){\n"
-                    + "        for(uint i=0; i<currentProcessFlows.length; i++)\n        {\n"
+            file.fileAllText += "    modifier inProcessFlow(ProcessFlow _processFlow){\n        ";
+            var strModStatement = "for(uint i=0; i<currentProcessFlows.length; i++)\n        {\n"
                     + "           if(currentProcessFlows[i] == _processFlow)\n           {\n"
                     + "             _;\n             return;\n           }\n        }\n        "
-                    + "revert(\"Invalid state of the process flow. Please check by getCurrentProcessState().\");\n    }\n\n";
-            
+                    + "revert(\"Invalid state of the process flow. Please check by getCurrentProcessState().\");";
+            file.fileAllText += strModStatement + "\n    }\n\n";
+            //add modifier to allSolidityFiles list
+            Modifier modTemp = new Modifier();
+            modTemp.name = "inProcessFlow";
+            Parameter paraTemp = new Parameter();
+            paraTemp.name = "_processFlow";
+            paraTemp.type = "ProcessFlow";
+            modTemp.inputParam.Add(paraTemp);
+            modTemp.statementsText = strModStatement;
+            file.modifiers.Add(modTemp);
 
             //contractor
             file.fileAllText += "    constructor()\n    {\n"
@@ -277,44 +293,71 @@ namespace Graphical2SmartContact_SCG
             file.fileAllText += "    function getCurrentProcessState()\n        public\n        view\n"
                     + "        returns(ProcessFlow[] memory)\n    {\n"
                     + "        return currentProcessFlows;\n    }\n\n";
+            //////////////
+            Function funTemp1 = new Function();
+            funTemp1.name = "getCurrentProcessState";
+            funTemp1.keywords.Add("public");
+            funTemp1.keywords.Add("view");
+            Parameter funTemp1retpara = new Parameter();
+            funTemp1retpara.type = "ProcessFlow[] memory";
+            funTemp1.returnVaris.Add(funTemp1retpara);
+            file.functions.Add(funTemp1);
 
             //deleteFlow(ProcessFlow) function
-            file.fileAllText += "    function deleteFlow(ProcessFlow _processFlow)\n        internal\n"
-                    + "    {\n        for(uint i=0; i<currentProcessFlows.length; i++)\n        {\n"
+            file.fileAllText += "    function deleteFlow(ProcessFlow _processFlow)\n        internal\n    {\n        ";
+            var strFunTemp2Statement = "for(uint i=0; i<currentProcessFlows.length; i++)\n        {\n"
                     + "            if(currentProcessFlows[i] == _processFlow)\n            {\n                "
                     + "currentProcessFlows[i] = currentProcessFlows[currentProcessFlows.length-1];\n"
-                    + "                currentProcessFlows.pop();\n            }\n        }\n    }\n\n";
+                    + "                currentProcessFlows.pop();\n            }\n        }";
+            file.fileAllText += strFunTemp2Statement + "\n    }\n\n";
+            ///////
+            Function funTemp2 = new Function();
+            funTemp2.name = "deleteFlow";
+            Parameter funTemp2intpara = new Parameter();
+            funTemp2intpara.name = "_processFlow";
+            funTemp2intpara.type = "ProcessFlow";
+            funTemp2.keywords.Add("internal");
+            funTemp2.statementsText = strFunTemp2Statement;
+            file.functions.Add(funTemp2);
 
             file.fileAllText += "}\n";
+
 
             allSolidityFiles.Add(file);
         }
 
-        string addSolidityFunction(YawlTask task,List<SCGVariable> loclaVariables)
+        string addSolidityFunction(YawlTask task,List<SCGVariable> loclaVariables, out Function func)
         {
             string function_text = "";
-
+            
             function_text += "    function " + task.name + "(";
+            func = new Function();
+            func.name = task.name;
             int countInputVaris = 0;
             //input parameters
             foreach (var inputVari in task.inputVariables)
             {
+                Parameter para_temp = new Parameter();
+                para_temp.name = inputVari.name;
                 if (countInputVaris > 0)
                 {
                     function_text += ", ";
                 }
                 if (inputVari.type == "string")
                 {
-                    function_text += inputVari.type + " memory _" + inputVari.name;
+                    function_text += inputVari.type + " memory " + inputVari.name;
+                    para_temp.type = inputVari.type + " memory";
                 }
                 else
                 {
-                    function_text += inputVari.type + " _" + inputVari.name;
+                    function_text += inputVari.type + /*" _" +*/ inputVari.name;
+                    para_temp.type = inputVari.type;
                 }
                 countInputVaris++;
+                func.inputParam.Add(para_temp);
             }
             //in/output variables for input
-            foreach (var inOutputVari in task.inOutVariables)
+            /*foreach (var inOutputVari in task.inOutVariables)
             {
                 if (countInputVaris > 0)
                 {
@@ -329,8 +372,9 @@ namespace Graphical2SmartContact_SCG
                     function_text += inOutputVari.type + " _" + inOutputVari.name;
                 }
                 countInputVaris++;
-            }
+            }*/
             function_text += ")\n        public\n";
+            func.keywords.Add("public");
             /*if (function.inputVariables.Count == 0)
             {
                 function_text += "        view\n";
@@ -338,6 +382,7 @@ namespace Graphical2SmartContact_SCG
             if (task.actionType == "pay" && task.payTypeVariable != null)
             {
                 function_text += "        payable\n";
+                func.keywords.Add("payable");
             }
             /*
             //modifiers
@@ -356,13 +401,19 @@ namespace Graphical2SmartContact_SCG
             }*/
             if(task.processFlow.currentProcessRoles.Count == 1)
             {
-                function_text += "        Only" + task.processFlow.currentProcessRoles[0].name + "()\n";
+                var str_temp = "Only" + task.processFlow.currentProcessRoles[0].name + "()";
+                func.calledModifiers.Add(str_temp);
+                function_text += "        " + str_temp + " \n";//////////////
             }
             else if (task.processFlow.currentProcessRoles.Count > 1)
             {
-                function_text += "        " + getMultiRolesModifierName(task.processFlow.currentProcessRoles)+"()\n";
+                var str_temp = getMultiRolesModifierName(task.processFlow.currentProcessRoles) + "()";
+                function_text += "        " + str_temp + "\n";
+                func.calledModifiers.Add(str_temp);
             }
-            function_text += "        inProcessFlow(ProcessFlow.To" + task.name + ")\n";
+            var str_temp2 = "inProcessFlow(ProcessFlow.To" + task.name + ")";
+            function_text += "        " + str_temp2 + "\n";
+
             
             //return parameters
             if (task.outputVariables.Count > 0)
@@ -377,11 +428,11 @@ namespace Graphical2SmartContact_SCG
                     }
                     if (outputVari.type == "string")
                     {
-                        function_text += outputVari.type + " memory _" + outputVari.name;
+                        function_text += outputVari.type + " memory " + outputVari.name;
                     }
                     else
                     {
-                        function_text += outputVari.type + " _" + outputVari.name;
+                        function_text += outputVari.type + " " + outputVari.name;
                     }
 
                     countOutputVaris++;
@@ -395,11 +446,11 @@ namespace Graphical2SmartContact_SCG
                     }
                     if (inOutputVari.type == "string")
                     {
-                        function_text += inOutputVari.type + " memory _" + inOutputVari.name;
+                        function_text += inOutputVari.type + " memory " + inOutputVari.name;
                     }
                     else
                     {
-                        function_text += inOutputVari.type + " _" + inOutputVari.name;
+                        function_text += inOutputVari.type + " " + inOutputVari.name;
                     }
 
                     countOutputVaris++;
@@ -408,13 +459,13 @@ namespace Graphical2SmartContact_SCG
             }
             function_text += "    {\n";
             //Take input variables to state variables
-            foreach (var inputVariForState in task.inputVariables)
+            /*foreach (var inputVariForState in task.inputVariables)
             {
                 if (loclaVariables.Exists(x => x.name == inputVariForState.name))
                 {
-                    function_text += "        " + inputVariForState.name + " = _" + inputVariForState.name + ";\n";
+                    function_text += "        " + inputVariForState.name + " = " + inputVariForState.name + ";\n";
                 }
-            }
+            }*/
             //Check for pay type
             if(task.actionType == "pay" && task.payTypeVariable!=null)
             {
