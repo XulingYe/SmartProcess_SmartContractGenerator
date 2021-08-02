@@ -22,7 +22,7 @@ namespace Graphical2SmartContact_SCG
             public string id;
             public string address;
             public List<string> functionNames = new List<string>();
-            //actionTypes: to store the types (info, check, pay) of the actions for the role
+            //actionTypes: to store the types (check, change, pay) of the actions for the role
             public List<string> actionTypes = new List<string>(); 
         }
 
@@ -495,7 +495,7 @@ namespace Graphical2SmartContact_SCG
                         {
                             string strParaType = paraTypeNode.InnerText;
                             string strParaName = paraNameNode.InnerText;
-                            if (strParaType == "Type")//solidity_modifier")
+                            if (strParaType == "Action")//solidity_modifier")
                             {
                                 #region modifiers in function
                                 /*//modifiers
@@ -530,6 +530,7 @@ namespace Graphical2SmartContact_SCG
                                             if(findPayVariable!=null)
                                             {
                                                 task_temp.payTypeVariable = findPayVariable;
+                                                /////Wrong here!
                                             }
                                         }
                                     }

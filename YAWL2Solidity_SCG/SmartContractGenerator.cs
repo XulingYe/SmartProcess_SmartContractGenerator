@@ -45,6 +45,7 @@ namespace Graphical2SmartContact_SCG
             public List<string> keywords = new List<string>();
             public List<Parameter> returnVaris = new List<Parameter>();
             public string statementsText;
+            public string actionType; //tag action
         }
         public List<SolidityFile> allSolidityFiles = new List<SolidityFile>();
         public List<MultiRolesModifier> allMultiModifiers = new List<MultiRolesModifier>();
@@ -92,27 +93,31 @@ namespace Graphical2SmartContact_SCG
             sFile.fileAllText += "\n//Defined state variables\n";
             foreach (var localvari_graphical in graphicalP.allLocalVariables)
             {
-                SCGVariable variableTemp = new SCGVariable();
-                sFile.fileAllText += "    " + localvari_graphical.type + " "/*" public "*/ + localvari_graphical.name;
-                variableTemp.type = localvari_graphical.type;
-                variableTemp.name = localvari_graphical.name;
-                if (localvari_graphical.value != null && localvari_graphical.value != "" 
-                    && localvari_graphical.value != "0")
+                if(localvari_graphical.type != "Action")//Action type should not be stored
                 {
-                    if(localvari_graphical.type=="string")
+                    SCGVariable variableTemp = new SCGVariable();
+                    sFile.fileAllText += "    " + localvari_graphical.type + " "/*" public "*/ + localvari_graphical.name;
+                    variableTemp.type = localvari_graphical.type;
+                    variableTemp.name = localvari_graphical.name;
+                    if (localvari_graphical.value != null && localvari_graphical.value != "" 
+                        && localvari_graphical.value != "0")
                     {
-                        sFile.fileAllText += " = \"" + localvari_graphical.value + "\"";
-                        variableTemp.value = "\"" + localvari_graphical.value + "\"";
-                    }
-                    else
-                    {
-                        sFile.fileAllText += " = " + localvari_graphical.value;
-                        variableTemp.value = localvari_graphical.value;
-                    }
+                        if(localvari_graphical.type=="string")
+                        {
+                            sFile.fileAllText += " = \"" + localvari_graphical.value + "\"";
+                            variableTemp.value = "\"" + localvari_graphical.value + "\"";
+                        }
+                        else 
+                        {
+                            sFile.fileAllText += " = " + localvari_graphical.value;
+                            variableTemp.value = localvari_graphical.value;
+                        }
                     
+                    }
+                    sFile.fileAllText += ";\n";
+                    sFile.stateVariables.Add(variableTemp);
                 }
-                sFile.fileAllText += ";\n";
-                sFile.stateVariables.Add(variableTemp);
+
             }
 
             //roles in state variables
@@ -134,8 +139,18 @@ namespace Graphical2SmartContact_SCG
 
                 if (role_graphical.address != null && role_graphical.address != "")
                 {
-                    sFile.fileAllText += " = " + role_graphical.address;
-                    variTemp.value = role_graphical.address;
+                    sFile.fileAllText += " = ";
+                    string strRoleValue;
+                    if(role_graphical.actionTypes.Contains("pay"))
+                    {
+                        strRoleValue = "payable(" + role_graphical.address + ")";
+                    }
+                    else
+                    {
+                        strRoleValue = role_graphical.address;
+                    }
+                    sFile.fileAllText += strRoleValue;
+                    variTemp.value = strRoleValue;
                 }
                 sFile.fileAllText += ";\n";
                 sFile.stateVariables.Add(variTemp);
@@ -350,7 +365,7 @@ namespace Graphical2SmartContact_SCG
                 }
                 else
                 {
-                    function_text += inputVari.type + /*" _" +*/ inputVari.name;
+                    function_text += inputVari.type + " " + inputVari.name;
                     para_temp.type = inputVari.type;
                 }
                 countInputVaris++;
@@ -379,7 +394,7 @@ namespace Graphical2SmartContact_SCG
             {
                 function_text += "        view\n";
             }*/
-            if (task.actionType == "pay" && task.payTypeVariable != null)
+            if (task.actionType == "pay")// && task.payTypeVariable != null)
             {
                 function_text += "        payable\n";
                 func.keywords.Add("payable");
@@ -413,8 +428,8 @@ namespace Graphical2SmartContact_SCG
             }
             var str_temp2 = "inProcessFlow(ProcessFlow.To" + task.name + ")";
             function_text += "        " + str_temp2 + "\n";
+            func.calledModifiers.Add(str_temp2);
 
-            
             //return parameters
             if (task.outputVariables.Count > 0)
             {
@@ -422,20 +437,24 @@ namespace Graphical2SmartContact_SCG
                 int countOutputVaris = 0;
                 foreach (var outputVari in task.outputVariables)
                 {
+                    Parameter returnPara_temp = new Parameter();
+                    returnPara_temp.name = outputVari.name;
                     if (countOutputVaris > 0)
                     {
                         function_text += ",";
                     }
                     if (outputVari.type == "string")
                     {
-                        function_text += outputVari.type + " memory " + outputVari.name;
+                        function_text += outputVari.type + " memory";// + outputVari.name;
+                        returnPara_temp.type = outputVari.type + " memory";
                     }
                     else
                     {
-                        function_text += outputVari.type + " " + outputVari.name;
+                        function_text += outputVari.type;// + " " + outputVari.name;
+                        returnPara_temp.type = outputVari.type;
                     }
-
                     countOutputVaris++;
+                    func.returnVaris.Add(returnPara_temp);
                 }
                 //in/output variables for output
                 foreach (var inOutputVari in task.inOutVariables)
@@ -483,14 +502,15 @@ namespace Graphical2SmartContact_SCG
             //Take state variables to output variables 
             foreach (var outputVariFromState in task.outputVariables)
             {
-                if (outputVariFromState.value != null
+                //It is a state variable
+                if (loclaVariables.Exists(x => x.name == outputVariFromState.name))
+                {
+                    function_text += "        return " + outputVariFromState.name + ";\n";
+                }
+                else if (outputVariFromState.value != null
                     && outputVariFromState.value != "" && outputVariFromState.value != "0")
                 {
-                    function_text += "        _" + outputVariFromState.name + " = " + outputVariFromState.value + ";\n";
-                }
-                else if (loclaVariables.Exists(x => x.name == outputVariFromState.name))
-                {
-                    function_text += "        _" + outputVariFromState.name + " = " + outputVariFromState.name + ";\n";
+                    function_text += "        return "  + outputVariFromState.value + ";\n";
                 }
             }
 

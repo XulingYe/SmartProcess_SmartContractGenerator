@@ -123,6 +123,11 @@ namespace Graphical2SmartContact_SCG
                 role_node.NodeFont = new Font("Arial", 9);
                 role_node.Nodes.Add("address: "+ role_yawl.address);
                 role_node.Nodes.Add("id: " + role_yawl.id);
+                /*foreach(var actype in role_yawl.actionTypes)
+                {
+                    role_node.Nodes.Add("action: " + actype);
+                }*/
+                
             }
             treeView_displayYAWLRoles.EndUpdate();
         }
