@@ -584,5 +584,6 @@ namespace Graphical2SmartContact_SCG
             //this.richTextBox_displayTable.Size = new Size(width_table - treeviewTable_width - 20, height_table - 30);
         }
         #endregion
+
     }
 }
