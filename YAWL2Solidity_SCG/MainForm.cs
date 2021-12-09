@@ -585,5 +585,19 @@ namespace Graphical2SmartContact_SCG
         }
         #endregion
 
+        private void btn_parseXML2PC_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btn_translatePC2SCC_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btn_translateSCC2SC_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

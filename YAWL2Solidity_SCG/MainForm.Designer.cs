@@ -46,14 +46,14 @@ namespace Graphical2SmartContact_SCG
             this.btn_fromGraphical2SC = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.groupBox_checking = new System.Windows.Forms.GroupBox();
-            this.button2 = new System.Windows.Forms.Button();
+            this.btn_translatePC2SCC = new System.Windows.Forms.Button();
             this.label5 = new System.Windows.Forms.Label();
             this.treeView1 = new System.Windows.Forms.TreeView();
             this.label4 = new System.Windows.Forms.Label();
             this.treeView_Checking = new System.Windows.Forms.TreeView();
             this.richTextBox_errorMassage = new System.Windows.Forms.RichTextBox();
-            this.button1 = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
+            this.btn_parseXML2PC = new System.Windows.Forms.Button();
+            this.btn_translateSCC2SC = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.label6 = new System.Windows.Forms.Label();
             this.groupBox_graphical.SuspendLayout();
@@ -206,7 +206,7 @@ namespace Graphical2SmartContact_SCG
             // btn_fromGraphical2SC
             // 
             this.btn_fromGraphical2SC.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_fromGraphical2SC.Location = new System.Drawing.Point(768, 580);
+            this.btn_fromGraphical2SC.Location = new System.Drawing.Point(742, 258);
             this.btn_fromGraphical2SC.Name = "btn_fromGraphical2SC";
             this.btn_fromGraphical2SC.Size = new System.Drawing.Size(99, 108);
             this.btn_fromGraphical2SC.TabIndex = 10;
@@ -226,7 +226,7 @@ namespace Graphical2SmartContact_SCG
             // 
             // groupBox_checking
             // 
-            this.groupBox_checking.Controls.Add(this.button2);
+            this.groupBox_checking.Controls.Add(this.btn_translatePC2SCC);
             this.groupBox_checking.Controls.Add(this.label5);
             this.groupBox_checking.Controls.Add(this.treeView1);
             this.groupBox_checking.Controls.Add(this.label4);
@@ -239,14 +239,15 @@ namespace Graphical2SmartContact_SCG
             this.groupBox_checking.TabStop = false;
             this.groupBox_checking.Text = "Table";
             // 
-            // button2
+            // btn_translatePC2SCC
             // 
-            this.button2.Location = new System.Drawing.Point(213, 25);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(134, 33);
-            this.button2.TabIndex = 13;
-            this.button2.Text = "=> Translate =>";
-            this.button2.UseVisualStyleBackColor = true;
+            this.btn_translatePC2SCC.Location = new System.Drawing.Point(213, 25);
+            this.btn_translatePC2SCC.Name = "btn_translatePC2SCC";
+            this.btn_translatePC2SCC.Size = new System.Drawing.Size(134, 33);
+            this.btn_translatePC2SCC.TabIndex = 13;
+            this.btn_translatePC2SCC.Text = "=> Translate =>";
+            this.btn_translatePC2SCC.UseVisualStyleBackColor = true;
+            this.btn_translatePC2SCC.Click += new System.EventHandler(this.btn_translatePC2SCC_Click);
             // 
             // label5
             // 
@@ -288,23 +289,25 @@ namespace Graphical2SmartContact_SCG
             this.richTextBox_errorMassage.TabIndex = 11;
             this.richTextBox_errorMassage.Text = "";
             // 
-            // button1
+            // btn_parseXML2PC
             // 
-            this.button1.Location = new System.Drawing.Point(752, 126);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 60);
-            this.button1.TabIndex = 12;
-            this.button1.Text = "\nParse ====>";
-            this.button1.UseVisualStyleBackColor = true;
+            this.btn_parseXML2PC.Location = new System.Drawing.Point(752, 126);
+            this.btn_parseXML2PC.Name = "btn_parseXML2PC";
+            this.btn_parseXML2PC.Size = new System.Drawing.Size(75, 60);
+            this.btn_parseXML2PC.TabIndex = 12;
+            this.btn_parseXML2PC.Text = "Parse \r\n===>";
+            this.btn_parseXML2PC.UseVisualStyleBackColor = true;
+            this.btn_parseXML2PC.Click += new System.EventHandler(this.btn_parseXML2PC_Click);
             // 
-            // button3
+            // btn_translateSCC2SC
             // 
-            this.button3.Location = new System.Drawing.Point(749, 453);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(77, 60);
-            this.button3.TabIndex = 14;
-            this.button3.Text = "\nTranslate <====";
-            this.button3.UseVisualStyleBackColor = true;
+            this.btn_translateSCC2SC.Location = new System.Drawing.Point(749, 453);
+            this.btn_translateSCC2SC.Name = "btn_translateSCC2SC";
+            this.btn_translateSCC2SC.Size = new System.Drawing.Size(77, 60);
+            this.btn_translateSCC2SC.TabIndex = 14;
+            this.btn_translateSCC2SC.Text = "Translate <=====";
+            this.btn_translateSCC2SC.UseVisualStyleBackColor = true;
+            this.btn_translateSCC2SC.Click += new System.EventHandler(this.btn_translateSCC2SC_Click);
             // 
             // groupBox1
             // 
@@ -334,8 +337,8 @@ namespace Graphical2SmartContact_SCG
             this.BackColor = System.Drawing.Color.WhiteSmoke;
             this.ClientSize = new System.Drawing.Size(1391, 700);
             this.Controls.Add(this.groupBox1);
-            this.Controls.Add(this.button3);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.btn_translateSCC2SC);
+            this.Controls.Add(this.btn_parseXML2PC);
             this.Controls.Add(this.groupBox_checking);
             this.Controls.Add(this.btn_fromGraphical2SC);
             this.Controls.Add(this.btn_SC2Checking);
@@ -381,11 +384,11 @@ namespace Graphical2SmartContact_SCG
         private System.Windows.Forms.TreeView treeView_SCfileTree;
         private System.Windows.Forms.RichTextBox richTextBox_errorMassage;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button btn_translatePC2SCC;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TreeView treeView1;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button btn_parseXML2PC;
+        private System.Windows.Forms.Button btn_translateSCC2SC;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Label label6;
     }
