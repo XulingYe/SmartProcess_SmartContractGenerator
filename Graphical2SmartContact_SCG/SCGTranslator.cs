@@ -3,36 +3,42 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Graphical2SmartContact_SCG.ProcessComponents;
 using static Graphical2SmartContact_SCG.SCGParser;
+using static Graphical2SmartContact_SCG.SmartContractComponents;
+using static Graphical2SmartContact_SCG.SCGChecker;
 
 namespace Graphical2SmartContact_SCG
 {
     public class SCGTranslator
     {
-
+        //SCGChecker checker = new SCGChecker();
         /*public string solidityAllText = "";
         public string solidityProcessFlowAllText = "";
         public string SolidityMainContractName = "default";*/
-
-        public void generateSolidityText(SCGParser graphicalP)
+        
+        public void generateSolidityText(ProcessComponents pcs, SmartContractComponents sccs, SCGChecker checker)
         {
-            allSolidityFiles.Clear();
+            sccs.allSolidityFiles.Clear();
 
             SolidityFile sFile = new SolidityFile();
-            sFile.contractName = graphicalP.fileName;
+            pcs.fileName = checker.checkNameValid(pcs.fileName);
+            sFile.contractName = pcs.fileName;
 
             //SC process flow smart contract
-            string SolidityProcessFlowContractName = "SCProcessFlow";
-            sFile.fileAllText += "import \"./" + SolidityProcessFlowContractName + ".sol\";\n\n";
-            generateSolidityProcessFlow(graphicalP.allFlows, SolidityProcessFlowContractName);
+            string SCProcessFlow_contractName = "SCProcessFlow";
+            sFile.fileAllText += "import \"./" + SCProcessFlow_contractName + ".sol\";\n\n";
+            generateSolidityProcessFlow(pcs.allFlows, SCProcessFlow_contractName, sccs, checker);
 
-            sFile.fileAllText += "contract " + graphicalP.fileName + " is " + SolidityProcessFlowContractName + "{\n";
-            sFile.parentContracts.Add(SolidityProcessFlowContractName);
+            
+            sFile.fileAllText += "contract " + pcs.fileName + " is " + SCProcessFlow_contractName + "{\n";
+            sFile.parentContracts.Add(SCProcessFlow_contractName);
             //enums
             sFile.fileAllText += "//Data type definition\n";
-            foreach (var enum_graphical in graphicalP.allDefinedEnums)
+            foreach (var enum_graphical in pcs.allDefinedEnums)
             {
                 DefineEnum enumTemp = new DefineEnum();
+                enum_graphical.enumName = checker.checkNameValid(enum_graphical.enumName);
                 sFile.fileAllText += "    enum " + enum_graphical.enumName + " { ";
                 enumTemp.enumName = enum_graphical.enumName;
 
@@ -51,7 +57,7 @@ namespace Graphical2SmartContact_SCG
 
             //state variables
             sFile.fileAllText += "\n//Defined state variables\n";
-            foreach (var localvari_graphical in graphicalP.allLocalVariables)
+            foreach (var localvari_graphical in pcs.allLocalVariables)
             {
                 if(localvari_graphical.type != "Action")//Action type should not be stored
                 {
@@ -83,7 +89,7 @@ namespace Graphical2SmartContact_SCG
             //roles in state variables
             sFile.fileAllText += "\n//Roles in state variables\n";
             var strRolesInModifier = "";
-            foreach (var role_graphical in graphicalP.allRoles)
+            foreach (var role_graphical in pcs.allRoles)
             {
                 SCGVariable variTemp = new SCGVariable();
                 //state variable
@@ -94,6 +100,7 @@ namespace Graphical2SmartContact_SCG
                     sFile.fileAllText += "payable ";
                     variTemp.type += " payable";
                 }
+                role_graphical.name = checker.checkNameValid(role_graphical.name);
                 sFile.fileAllText += role_graphical.name;
                 variTemp.name = role_graphical.name;
 
@@ -153,7 +160,7 @@ namespace Graphical2SmartContact_SCG
             sFile.fileAllText += "\n//Roles in modifiers\n";
             sFile.fileAllText += strRolesInModifier;
             //MultiRoles in modifiers
-            foreach(var multiRolesModifier in graphicalP.allMultiRoles)
+            foreach(var multiRolesModifier in pcs.allMultiRoles)
             {
                 Modifier temp_modifier = new Modifier();
                 var modifierName = "Only";
@@ -163,6 +170,7 @@ namespace Graphical2SmartContact_SCG
                 tempMultiRolesModifier.roles = multiRolesModifier.roles;
                 for(int i = 0; i< multiRolesModifier.roles.Count; i++)
                 {
+                    multiRolesModifier.roles[i].name = checker.checkNameValid(multiRolesModifier.roles[i].name);
                     var strRoleName = multiRolesModifier.roles[i].name;
                     if(i>0)
                     {
@@ -182,7 +190,7 @@ namespace Graphical2SmartContact_SCG
                 sFile.fileAllText += temp_modifier.statementsText;
                 sFile.fileAllText += "\n        _;\n    }\n";
                 tempMultiRolesModifier.modifierName = modifierName;
-                allMultiModifiers.Add(tempMultiRolesModifier);
+                sccs.allMultiModifiers.Add(tempMultiRolesModifier);
                 //add into file
                 temp_modifier.name = modifierName;
                 sFile.modifiers.Add(temp_modifier); 
@@ -191,22 +199,22 @@ namespace Graphical2SmartContact_SCG
 
             //functions
             sFile.fileAllText += "\n//Functions\n";
-            foreach (var function_yawl in graphicalP.allTasks)
+            foreach (var function_yawl in pcs.allTasks)
             {
                 //Function fun_temp;
-                sFile.fileAllText += addSolidityFunction(function_yawl, graphicalP.allLocalVariables, out Function fun_temp);
+                sFile.fileAllText += addSolidityFunction(function_yawl, pcs.allLocalVariables, sccs, checker, out Function fun_temp);
                 sFile.functions.Add(fun_temp);
             }
             sFile.fileAllText += "}";
-            allSolidityFiles.Add(sFile);
+            sccs.allSolidityFiles.Add(sFile);
         }
 
-        void generateSolidityProcessFlow(List<Flow> allFlows, string contractName)
+        void generateSolidityProcessFlow(List<Flow> allFlows, string contractName, SmartContractComponents sccs, SCGChecker checker)
         {
             SolidityFile file = new SolidityFile();
-            file.contractName = contractName;
+            file.contractName = checker.checkNameValid(contractName);
             
-            file.fileAllText += "contract " + contractName + "{\n";
+            file.fileAllText += "contract " + file.contractName + "{\n";
 
             //Automated generated process state based on process flows
             file.fileAllText += "\n//Automated generated process state based on process flows\n";
@@ -221,16 +229,16 @@ namespace Graphical2SmartContact_SCG
                 {
                     file.fileAllText += ", ";
                 }
-                if (flow.currentProcessName != "InputCondition")
+                if (flow.currentTaskID != "InputCondition")
                 {
-                    string strProcessName = "To" + flow.currentProcessName;
+                    string strProcessName = "To" + flow.currentTaskID;
                     file.fileAllText += strProcessName;
                     enumProcessFlowTemp.enumValues.Add(strProcessName);
                     count++;
                 }
                 else
                 {
-                    initailValue = "ProcessFlow.To" + flow.nextProcesses[0].processName;
+                    initailValue = "ProcessFlow.To" + flow.nextTasks[0].taskID;
                 }
             }
             file.fileAllText += " }\n\n";
@@ -298,19 +306,23 @@ namespace Graphical2SmartContact_SCG
             file.fileAllText += "}\n";
 
 
-            allSolidityFiles.Add(file);
+            sccs.allSolidityFiles.Add(file);
         }
 
-        string addSolidityFunction(YawlTask task,List<SCGVariable> loclaVariables, out Function func)
+        string addSolidityFunction(GraphicalTask task,List<SCGVariable> loclaVariables, SmartContractComponents sccs, SCGChecker checker, out Function func)
         {
+            //In Graphical workflow, inputParam is for output;
+            //OutputParam is for input;
+            //Therefore, we do a reverse here.
             string function_text = "";
-            
-            function_text += "    function " + task.name + "(";
+            //task.taskID = checker.checkNameValid(task.taskID);
+            function_text += "    //This "+ task.taskID + " function is for " + task.taskName + "\n";
+            function_text += "    function " + task.taskID + "(";
             func = new Function();
-            func.name = task.name;
+            func.name = task.taskID;
             int countInputVaris = 0;
             //input parameters
-            foreach (var inputVari in task.inputVariables)
+            foreach (var inputVari in task.outputVariables)
             {
                 Parameter para_temp = new Parameter();
                 para_temp.name = inputVari.name;
@@ -374,28 +386,28 @@ namespace Graphical2SmartContact_SCG
                 }
                 function_text += ")\n";
             }*/
-            if(task.processFlow.currentProcessRoles.Count == 1)
+            if(task.operateRoles.Count == 1)
             {
-                var str_temp = "Only" + task.processFlow.currentProcessRoles[0].name + "()";
+                var str_temp = "Only" + task.operateRoles[0].name + "()";
                 func.calledModifiers.Add(str_temp);
                 function_text += "        " + str_temp + " \n";//////////////
             }
-            else if (task.processFlow.currentProcessRoles.Count > 1)
+            else if (task.operateRoles.Count > 1)
             {
-                var str_temp = getMultiRolesModifierName(task.processFlow.currentProcessRoles) + "()";
+                var str_temp = getMultiRolesModifierName(task.operateRoles,sccs) + "()";
                 function_text += "        " + str_temp + "\n";
                 func.calledModifiers.Add(str_temp);
             }
-            var str_temp2 = "inProcessFlow(ProcessFlow.To" + task.name + ")";
+            var str_temp2 = "inProcessFlow(ProcessFlow.To" + task.taskID + ")";
             function_text += "        " + str_temp2 + "\n";
             func.calledModifiers.Add(str_temp2);
 
             //return parameters
-            if (task.outputVariables.Count > 0)
+            if (task.inputVariables.Count > 0)
             {
                 function_text += "        returns (";
                 int countOutputVaris = 0;
-                foreach (var outputVari in task.outputVariables)
+                foreach (var outputVari in task.inputVariables)
                 {
                     Parameter returnPara_temp = new Parameter();
                     returnPara_temp.name = outputVari.name;
@@ -417,7 +429,7 @@ namespace Graphical2SmartContact_SCG
                     func.returnVaris.Add(returnPara_temp);
                 }
                 //in/output variables for output
-                foreach (var inOutputVari in task.inOutVariables)
+                /*foreach (var inOutputVari in task.inOutVariables)
                 {
                     if (countOutputVaris > 0)
                     {
@@ -433,7 +445,7 @@ namespace Graphical2SmartContact_SCG
                     }
 
                     countOutputVaris++;
-                }
+                }*/
                 function_text += ")\n";
             }
             function_text += "    {\n";
@@ -448,12 +460,12 @@ namespace Graphical2SmartContact_SCG
             //Check for pay type
             if(task.actionType == "pay" && task.payTypeVariable!=null)
             {
-                if(task.processFlow.currentProcessRoles.Count==1)
+                if(task.operateRoles.Count==1)
                 {
-                    function_text += "        " + task.processFlow.currentProcessRoles[0].name + "Payable.transfer("
+                    function_text += "        " + task.operateRoles[0].name + "Payable.transfer("
                         + task.payTypeVariable.name+");\n";
                 }
-                else if(task.processFlow.currentProcessRoles.Count > 1)
+                else if(task.operateRoles.Count > 1)
                 {
                     //TODO: more than one roles case
                 }
@@ -474,27 +486,27 @@ namespace Graphical2SmartContact_SCG
                 }
             }
 
-            function_text += "        deleteFlow(ProcessFlow.To"+ task.name+");\n";
+            function_text += "        deleteFlow(ProcessFlow.To"+ task.taskID+");\n";
             //deal with process flow
-            if(task.processFlow.nextProcesses.Count >= 1)
+            if(task.processFlow.nextTasks.Count >= 1)
             {
-                if(task.processFlow.nextProcesses.Count == 1)
+                if(task.processFlow.nextTasks.Count == 1)
                 {
-                    if(task.processFlow.nextProcesses[0].processName!= "OutputCondition")
+                    if(task.processFlow.nextTasks[0].taskID!= "OutputCondition")
                     {
                         function_text += "        currentProcessFlows.push(ProcessFlow.To" 
-                            + task.processFlow.nextProcesses[0].processName + ");\n";
+                            + task.processFlow.nextTasks[0].taskID + ");\n";
                     }
                     
                 }
                 else if (task.processFlow.splitOperation == "and")
                 {
-                    foreach(var nextproc in task.processFlow.nextProcesses)
+                    foreach(var nextproc in task.processFlow.nextTasks)
                     {
-                        if (nextproc.processName != "OutputCondition")
+                        if (nextproc.taskID != "OutputCondition")
                         {
                             function_text += "        currentProcessFlows.push(ProcessFlow.To"
-                                + nextproc.processName + ");\n";
+                                + nextproc.taskID + ");\n";
                         }
                         
                     }
@@ -503,24 +515,24 @@ namespace Graphical2SmartContact_SCG
                 {
                     var strElseText = "        else\n        {\n";
                     bool isFirstIf = true;
-                    foreach (var nextproc in task.processFlow.nextProcesses)
+                    foreach (var nextproc in task.processFlow.nextTasks)
                     {
                         if(nextproc.condition == "otherwise")
                         {
-                            if(nextproc.processName != "OutputCondition")
+                            if(nextproc.taskID != "OutputCondition")
                             {
                                 strElseText += "            currentProcessFlows.push(ProcessFlow.To"
-                                    + nextproc.processName + ");\n"; 
+                                    + nextproc.taskID + ");\n"; 
                             }
                             strElseText +="        }\n";
                         }
                         else if(isFirstIf)
                         {
                             function_text += "        if(" + nextproc.condition + ")\n        {\n";
-                            if (nextproc.processName != "OutputCondition")
+                            if (nextproc.taskID != "OutputCondition")
                             {
                                 function_text += "            currentProcessFlows.push(ProcessFlow.To"
-                                + nextproc.processName + ");\n";
+                                + nextproc.taskID + ");\n";
                             }
                             function_text +="        }\n";
                             isFirstIf = false;
@@ -528,10 +540,10 @@ namespace Graphical2SmartContact_SCG
                         else
                         {
                             function_text += "        else if(" + nextproc.condition + ")\n        {\n";
-                            if (nextproc.processName != "OutputCondition")
+                            if (nextproc.taskID != "OutputCondition")
                             {
                                 function_text += "            currentProcessFlows.push(ProcessFlow.To"
-                                + nextproc.processName + ");\n";
+                                + nextproc.taskID + ");\n";
                             }
                             function_text += "        }\n";
                         }
@@ -544,10 +556,10 @@ namespace Graphical2SmartContact_SCG
             return function_text;
         }
 
-        string getMultiRolesModifierName(List<Role> roles)
+        string getMultiRolesModifierName(List<Role> roles, SmartContractComponents sccs)
         {
             string nameResult = "Error";
-            foreach(var multiRoles in allMultiModifiers)
+            foreach(var multiRoles in sccs.allMultiModifiers)
             {
                 if(roles == multiRoles.roles)
                 {

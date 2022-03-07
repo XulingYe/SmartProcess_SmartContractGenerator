@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Graphical2SmartContact_SCG.ProcessComponents;
 
 namespace Graphical2SmartContact_SCG
 {
     public class SmartContractComponents
     {
+        public List<SolidityFile> allSolidityFiles = new List<SolidityFile>();
+        public List<MultiRolesModifier> allMultiModifiers = new List<MultiRolesModifier>();
+
         //MultiRolesModifier is used to generate a modifier with more than one role.
         public class MultiRolesModifier
         {
@@ -46,7 +50,5 @@ namespace Graphical2SmartContact_SCG
             public string statementsText;
             public string actionType; //tag action
         }
-        public List<SolidityFile> allSolidityFiles = new List<SolidityFile>();
-        public List<MultiRolesModifier> allMultiModifiers = new List<MultiRolesModifier>();
     }
 }

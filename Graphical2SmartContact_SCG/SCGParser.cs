@@ -4,36 +4,39 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using static Graphical2SmartContact_SCG.ProcessComponents;
 
 namespace Graphical2SmartContact_SCG
 {
     public class SCGParser
     {
-        ProcessComponents PCs = new ProcessComponents();
-        public void parseGraphical(string text, bool isBPMN)
+        public void parseGraphical(string text, bool isBPMN, string fileName, ProcessComponents pcs)
         {
             //clear all previous data
-            PCs.allLocalVariables.Clear();
-            PCs.allDefinedEnums.Clear();
-            PCs.allFlows.Clear();
-            PCs.allTasks.Clear();
+            pcs.allLocalVariables.Clear();
+            pcs.allDefinedEnums.Clear();
+            pcs.allFlows.Clear();
+            pcs.allTasks.Clear();
             //allModifiers.Clear();
-            PCs.allRoles.Clear();
+            pcs.allRoles.Clear();
+
+            pcs.fileName = fileName;
+            pcs.isBPMN = isBPMN;
 
             if (!isBPMN)
             {
-                parseYawl(text);
+                parseYawl(text, pcs);
             }
             else
             {
-                parseBPMN(text);
+                parseBPMN(text, pcs);
             }
-            
+
 
         }
 
         #region YAWL
-        void parseYawl(string text)
+        void parseYawl(string text, ProcessComponents pcs)
         {
             //parse YAWL
             XmlDocument doc = new XmlDocument();
@@ -45,7 +48,7 @@ namespace Graphical2SmartContact_SCG
             {
                 //Print detail of BM
                 XmlElement e_specification_yawl = (XmlElement)specification_yawl;
-                PCs.fileName = e_specification_yawl.Attributes.GetNamedItem("uri").InnerXml;
+                //pcs.fileName = e_specification_yawl.Attributes.GetNamedItem("uri").InnerXml;
 
                 #region DataDefinitionOfYAWL
                 //Data Definition part
@@ -114,7 +117,7 @@ namespace Graphical2SmartContact_SCG
                                             //local variable
                                             if (originalType != "Type")
                                             {
-                                                addLocalVariable(e_LVinRootNet, originalType);
+                                                addLocalVariable(e_LVinRootNet, originalType, pcs);
                                             }
 
                                         }
@@ -124,7 +127,7 @@ namespace Graphical2SmartContact_SCG
                                     {
                                         foreach (XmlNode flow_node in e_LVinRootNet.ChildNodes)
                                         {
-                                            addProcessFlow(flow_node);
+                                            addProcessFlow(flow_node, pcs);
                                         }
                                     }
                                 }
@@ -134,14 +137,14 @@ namespace Graphical2SmartContact_SCG
                         //others: functions
                         else
                         {
-                            addFunction(decomposition_node);
+                            addYawlTask(decomposition_node, pcs);
                         }
                     }
                 }
             }
         }
 
-        void addLocalVariable(XmlElement e_LVinRootNet, string originalType)
+        void addLocalVariable(XmlElement e_LVinRootNet, string originalType, ProcessComponents pcs)
         {
             ProcessComponents.SCGVariable lv_temp = new ProcessComponents.SCGVariable();
             //name
@@ -172,7 +175,7 @@ namespace Graphical2SmartContact_SCG
             XmlNode lvValue_node = e_LVinRootNet.GetElementsByTagName("initialValue").Item(0);
             if (lvValue_node != null)
             {
-                if(PCs.allDefinedEnums.Exists(x=>x.enumName==lv_temp.type)&& !lvValue_node.InnerXml.Contains(lv_temp.type))
+                if (pcs.allDefinedEnums.Exists(x => x.enumName == lv_temp.type) && !lvValue_node.InnerXml.Contains(lv_temp.type))
                 {
                     lv_temp.value = lv_temp.type + "." + lvValue_node.InnerXml;
                 }
@@ -180,10 +183,10 @@ namespace Graphical2SmartContact_SCG
                 {
                     lv_temp.value = lvValue_node.InnerXml;
                 }
-                
+
             }
 
-            PCs.allLocalVariables.Add(lv_temp);
+            pcs.allLocalVariables.Add(lv_temp);
         }
 
         /*
@@ -249,7 +252,7 @@ namespace Graphical2SmartContact_SCG
             allModifiers.Add(m_temp);
         }*/
 
-        void addProcessFlow(XmlNode flow_node)
+        void addProcessFlow(XmlNode flow_node, ProcessComponents pcs)
         {
             ProcessComponents.Flow flow = new ProcessComponents.Flow();
             if (flow_node.Name == "inputCondition" || flow_node.Name == "task")
@@ -257,8 +260,7 @@ namespace Graphical2SmartContact_SCG
                 XmlNode flow_id = flow_node.Attributes.GetNamedItem("id");
                 if (flow_id != null)
                 {
-                    flow.currentProcessName = flow_id.InnerXml;
-
+                    flow.currentTaskID = flow_id.InnerXml;
                     if (flow_node.GetType().Name == "XmlElement")
                     {
                         XmlElement e_flow_input = (XmlElement)flow_node;
@@ -268,12 +270,12 @@ namespace Graphical2SmartContact_SCG
                         {
                             foreach (XmlNode nextNode in next_nodes)
                             {
-                                ProcessComponents.ToNextProcess nextProcess = new ProcessComponents.ToNextProcess();
+                                ToNextTask nextProcess = new ToNextTask();
                                 foreach (XmlNode flowInfo in nextNode.ChildNodes)
                                 {
                                     if (flowInfo.Name == "nextElementRef")
                                     {
-                                        nextProcess.processName = flowInfo.Attributes.GetNamedItem("id").InnerXml;
+                                        nextProcess.taskID = flowInfo.Attributes.GetNamedItem("id").InnerXml;
                                     }
                                     else if (flowInfo.Name == "predicate")
                                     {
@@ -287,27 +289,27 @@ namespace Graphical2SmartContact_SCG
                                             //"&lt;" represents "<", "&gt;" represents ">".
                                             if (conditions[1].Contains("<="))// || conditions[1].Contains(">=")|| conditions[1].Contains("!="))
                                             {
-                                                nextProcess.condition = generateCondition(variables.Last(), conditions[1], "<=");
+                                                nextProcess.condition = generateCondition(variables.Last(), conditions[1], "<=", pcs.allLocalVariables);
                                             }
                                             else if (conditions[1].Contains(">="))
                                             {
-                                                nextProcess.condition = generateCondition(variables.Last(), conditions[1], ">=");
+                                                nextProcess.condition = generateCondition(variables.Last(), conditions[1], ">=", pcs.allLocalVariables);
                                             }
                                             else if (conditions[1].Contains("!="))
                                             {
-                                                nextProcess.condition = generateCondition(variables.Last(), conditions[1], "!=");
+                                                nextProcess.condition = generateCondition(variables.Last(), conditions[1], "!=", pcs.allLocalVariables);
                                             }
                                             else if (conditions[1].Contains("<"))
                                             {
-                                                nextProcess.condition = generateCondition(variables.Last(), conditions[1], "<");
+                                                nextProcess.condition = generateCondition(variables.Last(), conditions[1], "<", pcs.allLocalVariables);
                                             }
                                             else if (conditions[1].Contains(">"))
                                             {
-                                                nextProcess.condition = generateCondition(variables.Last(), conditions[1], ">");
+                                                nextProcess.condition = generateCondition(variables.Last(), conditions[1], ">", pcs.allLocalVariables);
                                             }
                                             else if (conditions[1].Contains("="))
                                             {
-                                                nextProcess.condition = generateCondition(variables.Last(), conditions[1], "=");
+                                                nextProcess.condition = generateCondition(variables.Last(), conditions[1], "=", pcs.allLocalVariables);
                                             }
                                         }
                                     }
@@ -316,7 +318,7 @@ namespace Graphical2SmartContact_SCG
                                         nextProcess.condition = "otherwise";
                                     }
                                 }
-                                flow.nextProcesses.Add(nextProcess);
+                                flow.nextTasks.Add(nextProcess);
                             }
                             //split operation
                             if (next_nodes.Count > 1)
@@ -331,69 +333,85 @@ namespace Graphical2SmartContact_SCG
                         //Roles in resourcing
                         XmlNodeList roles_nodes = e_flow_input.GetElementsByTagName("role");
                         int rolesCount = roles_nodes.Count;
-                        if(rolesCount > 0)
+                        if (rolesCount > 0)
                         {
                             var tempMultiRoles = new ProcessComponents.MultiRoles();
-                            foreach(XmlNode role_node in roles_nodes)
+                            foreach (XmlNode role_node in roles_nodes)
                             {
                                 //role's id is not empty
-                                if(role_node.InnerText != null && role_node.InnerText !="")
+                                if (role_node.InnerText != null && role_node.InnerText != "")
                                 {
-                                    //add this id into process
-                                    ProcessComponents.Role tempRole = new ProcessComponents.Role();
-                                    tempRole.id = role_node.InnerText;
-                                    flow.currentProcessRoles.Add(tempRole);
-
-                                    //add this id into allRoles list
-                                    var foundRole = PCs.allRoles.Find(x => x.id == role_node.InnerText);
-                                    if(foundRole != null)
+                                    //Step 1: add this role into allRoles list
+                                    var foundRole = pcs.allRoles.Find(x => x.id == role_node.InnerText);
+                                    if (foundRole != null)
                                     {
                                         //add this function/process name into AllRoles list
-                                        foundRole.functionNames.Add(flow.currentProcessName);
-                                        if(rolesCount>1 && !tempMultiRoles.roles.Contains(foundRole))
+                                        foundRole.TaskIDs.Add(flow.currentTaskID);
+                                        if (rolesCount > 1 && !tempMultiRoles.roles.Contains(foundRole))
                                         {
                                             tempMultiRoles.roles.Add(foundRole);
                                         }
                                     }
                                     else
                                     {
-                                        tempRole.functionNames.Add(flow.currentProcessName);
-                                        PCs.allRoles.Add(tempRole);
+                                        //create a new role into AllRoles list
+                                        foundRole = new ProcessComponents.Role();
+                                        foundRole.id = role_node.InnerText;
+                                        foundRole.TaskIDs.Add(flow.currentTaskID);
+                                        pcs.allRoles.Add(foundRole);
                                         if (rolesCount > 1 && !tempMultiRoles.roles.Contains(foundRole))
                                         {
                                             tempMultiRoles.roles.Add(foundRole);
                                         }
                                     }
+
+                                    //Step 2: add this role into the corresponding task
+                                    var foundTask = pcs.allTasks.Find(x => x.taskID == flow.currentTaskID);
+
+                                    //Task not existed
+                                    if (foundTask == null)
+                                    {
+                                        foundTask = new GraphicalTask();
+                                        foundTask.taskID = flow.currentTaskID;
+                                        foundTask.operateRoles.Add(foundRole);
+                                        foundTask.processFlow = flow;
+                                        pcs.allTasks.Add(foundTask);
+                                    }
+                                    else
+                                    {
+                                        //TODO: should not be this case. But if yes, handle later
+
+                                    }
                                 }
                             }
-                            if(rolesCount>1)
+                            if (rolesCount > 1)
                             {
-                                PCs.allMultiRoles.Add(tempMultiRoles);
+                                pcs.allMultiRoles.Add(tempMultiRoles);
                             }
                         }
                     }
-                    PCs.allFlows.Add(flow);
+                    pcs.allFlows.Add(flow);
                 }
             }
         }
 
-        string generateCondition(string variableName, string fullCondition, string operation)
+        string generateCondition(string variableName, string fullCondition, string operation, List<SCGVariable> allLocalVariables)
         {
             string result;
             string[] op = new string[] { operation };
             var value = fullCondition.Split(op, StringSplitOptions.RemoveEmptyEntries).Last();
-            if(value.Contains('\''))
+            if (value.Contains('\''))
             {
                 value = value.Trim('\'', ' ');
             }
-            var variable = PCs.allLocalVariables.Find(x => x.name == variableName);
-            if(variable!=null)
+            var variable = allLocalVariables.Find(x => x.name == variableName);
+            if (variable != null)
             {
                 if (variable.type == "string")
                 {
                     value = "\"" + value + "\"";
                 }
-                if(operation=="=")
+                if (operation == "=")
                 {
                     operation = "==";
                 }
@@ -407,24 +425,39 @@ namespace Graphical2SmartContact_SCG
             return result;
         }
 
-        void addFunction(XmlNode decomposition_node)
+        void addYawlTask(XmlNode decomposition_node, ProcessComponents pcs)
         {
-            ProcessComponents.YawlTask task_temp = new ProcessComponents.YawlTask();
-            task_temp.name = decomposition_node.Attributes.GetNamedItem("id").InnerXml;
-            var flow = PCs.allFlows.Find(x => x.currentProcessName == task_temp.name);
-            if (flow != null)
-            {
-                task_temp.processFlow = flow;
+            var taskID = decomposition_node.Attributes.GetNamedItem("id").InnerXml;
+            var foundTask = pcs.allTasks.Find(x => x.taskID == taskID);
 
-                
-                foreach(XmlNode para in decomposition_node.ChildNodes)
+            if (foundTask == null)
+            {
+                foundTask = new GraphicalTask();
+                foundTask.taskID = taskID;
+            }
+            if (foundTask.processFlow == null)
+            {
+                var flow = pcs.allFlows.Find(x => x.currentTaskID == taskID);
+                if (flow != null)
                 {
-                    if (para.GetType().Name == "XmlElement")
+                    foundTask.processFlow = flow;
+                }
+            }
+
+            foreach (XmlNode para in decomposition_node.ChildNodes)
+            {
+                if (para.GetType().Name == "XmlElement")
+                {
+                    XmlElement e_para = (XmlElement)para;
+                    if (e_para.Name == "name")
                     {
-                        XmlElement e_para = (XmlElement)para;
+                        foundTask.taskName = e_para.InnerText;
+                    }
+                    else
+                    {
                         XmlNode paraTypeNode = e_para.GetElementsByTagName("type").Item(0);
                         XmlNode paraNameNode = e_para.GetElementsByTagName("name").Item(0);
-                        if(paraTypeNode != null && paraNameNode != null)
+                        if (paraTypeNode != null && paraNameNode != null)
                         {
                             string strParaType = paraTypeNode.InnerText;
                             string strParaName = paraNameNode.InnerText;
@@ -451,31 +484,31 @@ namespace Graphical2SmartContact_SCG
                                     task_temp.modifiers.Add(paraModif);
                                 }*/
                                 #endregion
-                                if (task_temp.actionType == null || task_temp.actionType == "")
+                                if (foundTask.actionType == null || foundTask.actionType == "")
                                 {
-                                    task_temp.actionType = strParaName;
-                                    if(strParaName=="pay")
+                                    foundTask.actionType = strParaName;
+                                    if (strParaName == "pay")
                                     {
                                         XmlNode paraValueNode = e_para.GetElementsByTagName("defaultValue").Item(0);
-                                        if(paraValueNode!=null)
+                                        if (paraValueNode != null)
                                         {
-                                            var findPayVariable = PCs.allLocalVariables.Find(x => x.name == paraValueNode.InnerText);
-                                            if(findPayVariable!=null)
+                                            var findPayVariable = pcs.allLocalVariables.Find(x => x.name == paraValueNode.InnerText);
+                                            if (findPayVariable != null)
                                             {
-                                                task_temp.payTypeVariable = findPayVariable;
+                                                foundTask.payTypeVariable = findPayVariable;
                                                 /////Wrong here!
                                             }
                                         }
                                     }
                                 }
                             }
-                            //InputParam, outputParam and in/out
-                            //In YAWL, inputParam is for output;
+
+                            //In Graphical workflow, inputParam is for output;
                             //OutputParam is for input;
                             //Therefore, we do a reverse here.
-                            else
+                            /*else
                             {
-                                var paraVari = PCs.allLocalVariables.Find(x => x.name == strParaName);
+                                var paraVari = pcs.allLocalVariables.Find(x => x.name == strParaName);
                                 if (paraVari != null)
                                 {
                                     if (para.Name == "inputParam")
@@ -484,7 +517,7 @@ namespace Graphical2SmartContact_SCG
                                         if (findResult != null)
                                         {
                                             task_temp.inputVariables.Remove(findResult);
-                                            task_temp.inOutVariables.Add(findResult);
+                                            //task_temp.inOutVariables.Add(findResult);
                                         }
                                         else
                                         {
@@ -498,7 +531,7 @@ namespace Graphical2SmartContact_SCG
                                         if (findResult != null)
                                         {
                                             task_temp.outputVariables.Remove(findResult);
-                                            task_temp.inOutVariables.Add(findResult);
+                                            //task_temp.inOutVariables.Add(findResult);
                                         }
                                         else
                                         {
@@ -506,15 +539,17 @@ namespace Graphical2SmartContact_SCG
                                         }
                                     }
                                 }
-                            }
+                            }*/
                         }
                     }
+
                 }
             }
-            PCs.allTasks.Add(task_temp);
+
+            pcs.allTasks.Add(foundTask);
         }
 
-        public void parseYawlRoles(string text)
+        public void parseYawlRoles(string text, ProcessComponents pcs)
         {
             //parse YAWL roles
             XmlDocument doc = new XmlDocument();
@@ -522,38 +557,38 @@ namespace Graphical2SmartContact_SCG
 
             //file name
             XmlNodeList roles_nodelist = doc.GetElementsByTagName("role");
-            
-            foreach(XmlNode role_node in roles_nodelist)
+
+            foreach (XmlNode role_node in roles_nodelist)
             {
-                if(role_node.GetType().Name == "XmlElement")
+                if (role_node.GetType().Name == "XmlElement")
                 {
                     XmlElement e_role_node = (XmlElement)role_node;
                     var RoleName_node = e_role_node.GetElementsByTagName("name").Item(0);
                     var RoleAddress_node = e_role_node.GetElementsByTagName("description").Item(0);
-                    if(RoleName_node != null && RoleAddress_node != null)
+                    if (RoleName_node != null && RoleAddress_node != null)
                     {
                         var str_RoleId = e_role_node.GetAttribute("id");
-                        if(str_RoleId != null && str_RoleId != "")
+                        if (str_RoleId != null && str_RoleId != "")
                         {
                             //find this role in allRoles list
-                            var foundRole = PCs.allRoles.Find(x => x.id == str_RoleId);
-                            if(foundRole!=null)
+                            var foundRole = pcs.allRoles.Find(x => x.id == str_RoleId);
+                            if (foundRole != null)
                             {
                                 //put the function names and types in all roles
-                                foreach(var functionName in foundRole.functionNames)
+                                foreach (var functionName in foundRole.TaskIDs)
                                 {
-                                    var funTemp = PCs.allTasks.Find(x => x.name == functionName);
-                                    if(funTemp != null && funTemp.processFlow != null)
+                                    var funTemp = pcs.allTasks.Find(x => x.taskID == functionName);
+                                    if (funTemp != null && funTemp.processFlow != null)
                                     {
-                                        foreach(var processTempRole in funTemp.processFlow.currentProcessRoles)
+                                        foreach (var processTempRole in funTemp.operateRoles)
                                         {
-                                            if(processTempRole.id == str_RoleId)
+                                            if (processTempRole.id == str_RoleId)
                                             {
                                                 processTempRole.name = RoleName_node.InnerText;
                                                 processTempRole.address = RoleAddress_node.InnerText;
                                             }
                                         }
-                                        if((funTemp.actionType!=null||funTemp.actionType!="") 
+                                        if ((funTemp.actionType != null || funTemp.actionType != "")
                                             && !foundRole.actionTypes.Contains(funTemp.actionType))
                                         {
                                             foundRole.actionTypes.Add(funTemp.actionType);
@@ -570,7 +605,7 @@ namespace Graphical2SmartContact_SCG
                                 role_temp.id = str_RoleId;
                                 role_temp.name = RoleName_node.InnerText;
                                 role_temp.address = RoleAddress_node.InnerText;
-                                PCs.allRoles.Add(role_temp);
+                                pcs.allRoles.Add(role_temp);
                             }
                         }
                     }
@@ -580,10 +615,203 @@ namespace Graphical2SmartContact_SCG
         #endregion
 
         #region BPMN
-        void parseBPMN(string text)
+        void parseBPMN(string text, ProcessComponents pcs)
         {
+            //parse BPMN
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(text);
 
+            //participants and message flow
+            XmlNode bpmnCollaboration_node = doc.GetElementsByTagName("bpmn:collaboration").Item(0);
+            if (bpmnCollaboration_node != null && bpmnCollaboration_node.GetType().Name == "XmlElement")
+            {
+                XmlElement e_bpmnCollaboration = (XmlElement)bpmnCollaboration_node;
+
+                //Print detail of participants
+                XmlNodeList bpmnParticipants_nodeList = e_bpmnCollaboration.GetElementsByTagName("bpmn:participant");
+                if (bpmnParticipants_nodeList != null && bpmnParticipants_nodeList.Count > 0)
+                {
+                    foreach (var bpmnParticipant_node in bpmnParticipants_nodeList)
+                    {
+                        if (bpmnParticipant_node != null && bpmnParticipant_node.GetType().Name == "XmlElement")
+                        {
+                            XmlElement e_bpmnParticipant = (XmlElement)bpmnParticipant_node;
+                            //Store info of each participant
+                            Role roleTemp = new Role();
+                            roleTemp.id = e_bpmnParticipant.GetAttribute("id");
+                            roleTemp.name = e_bpmnParticipant.GetAttribute("name");
+                            roleTemp.bpmnProcessName = e_bpmnParticipant.GetAttribute("processRef");
+                            pcs.allRoles.Add(roleTemp);
+                        }
+                    }
+                }
+                //message flow
+                XmlNodeList bpmnMessageFlows_nodeList = e_bpmnCollaboration.GetElementsByTagName("bpmn:messageFlow");
+                if (bpmnMessageFlows_nodeList != null && bpmnMessageFlows_nodeList.Count > 0)
+                {
+                    foreach (var bpmnMessageFlow_node in bpmnMessageFlows_nodeList)
+                    {
+                        if (bpmnMessageFlow_node != null && bpmnMessageFlow_node.GetType().Name == "XmlElement")
+                        {
+                            XmlElement e_bpmnMessageFlow = (XmlElement)bpmnMessageFlow_node;
+
+                            var flowSourceEndID = e_bpmnMessageFlow.GetAttribute("sourceRef");
+                            var flowTargetEndID = e_bpmnMessageFlow.GetAttribute("targetRef");
+
+                            //the two connected ends of a message flow would be either a task, or a role.
+                            //In current case, we will only consider the message flow which connect two tasks.
+                            if (!pcs.allRoles.Exists(x => x.id == flowSourceEndID) && !pcs.allRoles.Exists(x => x.id == flowTargetEndID))
+                            {
+                                //Store info of each message flow into allFlows
+                                Flow flowTemp = new Flow();
+                                flowTemp.flowID = e_bpmnMessageFlow.GetAttribute("id");
+                                flowTemp.currentTaskID = flowSourceEndID;
+                                ToNextTask nextTaskTemp = new ToNextTask();
+                                nextTaskTemp.taskID = flowTargetEndID;
+                                flowTemp.nextTasks.Add(nextTaskTemp);
+                                pcs.allFlows.Add(flowTemp);
+
+                                //create source end task
+                                var foundSourceTask = pcs.allTasks.Find(x => x.taskID == flowSourceEndID);
+                                if (foundSourceTask == null)
+                                {
+                                    foundSourceTask = new GraphicalTask();
+                                    foundSourceTask.taskID = flowSourceEndID;
+                                }
+                                if (foundSourceTask.processFlow == null)
+                                {
+                                    foundSourceTask.processFlow = flowTemp;
+                                }
+                                pcs.allTasks.Add(foundSourceTask);
+
+                                //create target end task
+                                var foundTargetTask = pcs.allTasks.Find(x => x.taskID == flowTargetEndID);
+                                if (foundTargetTask == null)
+                                {
+                                    foundTargetTask = new GraphicalTask();
+                                    foundTargetTask.taskID = flowTargetEndID;
+                                }
+                                if (foundTargetTask.processFlow == null)
+                                {
+                                    foundTargetTask.processFlow = flowTemp;
+                                }
+                                pcs.allTasks.Add(foundTargetTask);
+                            }
+
+                        }
+                    }
+                }
+            }
+
+            //Process of each participant
+            XmlNodeList bpmnProcesses_nodeList = doc.GetElementsByTagName("bpmn:process");
+            foreach (var bpmnProcess_node in bpmnProcesses_nodeList)
+            {
+                if (bpmnProcess_node != null && bpmnProcess_node.GetType().Name == "XmlElement")
+                {
+                    XmlElement e_bpmnProcess = (XmlElement)bpmnProcess_node;
+                    var processID = e_bpmnProcess.GetAttribute("id");
+                    var foundRole = pcs.allRoles.Find(x => x.bpmnProcessName == processID);
+                    if (foundRole != null)
+                    {
+                        //step 1: add address
+                        parseBPMNextensions(e_bpmnProcess, foundRole, pcs.allLocalVariables);
+                        //step 2: add each task into allTasks and foundRole
+
+
+                    }
+                    else
+                    {
+                        //TODO: error message
+                    }
+                }
+            }
+        }
+
+        //store properties (action or address), in-output variables 
+        //case 1: address
+        private void parseBPMNextensions(XmlElement e_bpmnProcess, Role currentRole, List<SCGVariable> allVariables)
+        {
+            var extensionElements = e_bpmnProcess.GetElementsByTagName("bpmn:extensionElements").Item(0);
+            if (extensionElements != null && extensionElements.ChildNodes != null & extensionElements.ChildNodes.Count > 0)
+            {
+                foreach(var elementChildNode in extensionElements.ChildNodes)
+                {
+                    if (elementChildNode != null && elementChildNode.GetType().Name == "XmlElement")
+                    {
+                        XmlElement e_elementChild = (XmlElement)elementChildNode;
+
+                        //properties, name should be address
+                        if(e_elementChild.Name == "camunda:properties")
+                        {
+                            if(e_elementChild.ChildNodes != null && e_elementChild.ChildNodes.Count > 0)
+                            {
+                                foreach(var bpmnProperty_node in e_elementChild.ChildNodes)
+                                {
+                                    if(bpmnProperty_node != null && bpmnProperty_node.GetType().Name == "XmlElement")
+                                    {
+                                        XmlElement e_bpmnProperty = (XmlElement)bpmnProperty_node;
+                                        var propertyName = e_bpmnProperty.GetAttribute("name");
+                                        var propertyValue = e_bpmnProperty.GetAttribute("value");
+                                        if(propertyName == "address")
+                                        {
+                                            //add it to currentRole
+                                            currentRole.address = propertyValue;
+
+                                            //add it to allVariables
+                                            var variTemp = new SCGVariable();
+                                            variTemp.name = currentRole.name;
+                                            variTemp.type = propertyName;
+                                            variTemp.value = propertyValue;
+                                            allVariables.Add(variTemp);
+                                        }
+                                        else
+                                        {
+                                            //TODO: should only be address, please handle other cases. Or anything missing?
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        //should not be the case
+                        else
+                        {
+                            //TODO: a case that is not considered
+                        }
+
+                    }
+                }
+            }
+        }
+
+        //case 2: Action and in-output variables
+        private void parseBPMNextensions(XmlElement e_bpmnProcess, GraphicalTask currentTask, ProcessComponents pcs)
+        {
+            var extensionElements = e_bpmnProcess.GetElementsByTagName("bpmn:extensionElements").Item(0);
+            if (extensionElements != null && extensionElements.ChildNodes != null & extensionElements.ChildNodes.Count > 0)
+            {
+                foreach (var elementChildNode in extensionElements.ChildNodes)
+                {
+                    if (elementChildNode != null && elementChildNode.GetType().Name == "XmlElement")
+                    {
+                        XmlElement e_elementChild = (XmlElement)elementChildNode;
+
+                        //properties, name should be address or Action
+                        if (e_elementChild.Name == "camunda:properties")
+                        {
+
+                        }
+                        //in-output
+                        else if (e_elementChild.Name == "camunda:inputOutput")
+                        {
+
+                        }
+
+                    }
+                }
+            }
         }
         #endregion
     }
 }
+

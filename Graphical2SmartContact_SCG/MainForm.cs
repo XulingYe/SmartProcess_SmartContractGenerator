@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static Graphical2SmartContact_SCG.SCGTranslator;
+using static Graphical2SmartContact_SCG.SmartContractComponents;
 
 namespace Graphical2SmartContact_SCG
 {
@@ -18,8 +19,14 @@ namespace Graphical2SmartContact_SCG
         public MainForm()
         {
             InitializeComponent();
-
             Auto_Size();
+            /*char[] testTX = "532EAABD9574880DBF76B9B8CC00832C20A6EC113D682299550D7A6E0F345E25".ToCharArray();
+            string reverse = String.Empty;
+            for (int i = testTX.Length - 1; i > -1; i--)
+            {
+                reverse += testTX[i];
+            }
+            richTextBox_displayGraphical.Text = reverse;*/
         }
         private void MainForm_SizeChanged(object sender, EventArgs e)
         {
@@ -27,9 +34,11 @@ namespace Graphical2SmartContact_SCG
         }
 
         #region VariablesDefinition
-        SCGParser graphicalParser = new SCGParser();
-        SCGTranslator solidityGenerator = new SCGTranslator();
-        SCGChecker smartContractChecking = new SCGChecker();
+        ProcessComponents processComponents = new ProcessComponents();
+        SmartContractComponents contractComponents = new SmartContractComponents();
+        SCGParser parser = new SCGParser();
+        SCGTranslator translator = new SCGTranslator();
+        SCGChecker checker = new SCGChecker();
         #endregion
 
         #region Graphical representation
@@ -50,6 +59,7 @@ namespace Graphical2SmartContact_SCG
                     if (text != "")
                     {
                         richTextBox_displayGraphical.Text = text;
+                        string fileName = Path.GetFileNameWithoutExtension(file);
                         string graphicalExtension = Path.GetExtension(file);
                         if (graphicalExtension == ".bpmn")
                         {
@@ -66,7 +76,7 @@ namespace Graphical2SmartContact_SCG
                         treeView_SCfileTree.Nodes.Clear();
                         richTextBox_displaySC.Text = "";
                         textBox_SCExportedPath.Text = "";
-                        graphicalParser.parseGraphical(text,isBPMN);
+                        parser.parseGraphical(text,isBPMN,fileName, processComponents);
                     }
                 }
                 catch (IOException)
@@ -91,7 +101,7 @@ namespace Graphical2SmartContact_SCG
                         text = File.ReadAllText(file);
                         if (text != "")
                         {
-                            graphicalParser.parseYawlRoles(text);
+                            parser.parseYawlRoles(text,processComponents);
                             displayYawlRolesTree();
                         }
                     }
@@ -116,7 +126,7 @@ namespace Graphical2SmartContact_SCG
             //add roles
             var roles_node = treeView_displayYAWLRoles.Nodes.Add("Roles");
             roles_node.NodeFont = new Font("Arial", 9, FontStyle.Bold);
-            foreach (var role_yawl in graphicalParser.allRoles)
+            foreach (var role_yawl in processComponents.allRoles)
             {
                 //add parameters to modifier
                 var role_node = roles_node.Nodes.Add(role_yawl.name);
@@ -150,7 +160,7 @@ namespace Graphical2SmartContact_SCG
                     if (!Directory.Exists(newFolder))
                     {
                         Directory.CreateDirectory(newFolder);
-                        foreach (var file in solidityGenerator.allSolidityFiles)
+                        foreach (var file in contractComponents.allSolidityFiles)
                         {
                             var fileName = file.contractName + ".sol";
                             var filePath = newFolder + "\\" + fileName;
@@ -173,7 +183,7 @@ namespace Graphical2SmartContact_SCG
             {
                 if(!treeView_SCfileTree.SelectedNode.Text.Contains("contracts_"))
                 {
-                    foreach (var scFile in solidityGenerator.allSolidityFiles)
+                    foreach (var scFile in solidityTranslator.allSolidityFiles)
                     {
                         if (treeView_SCfileTree.SelectedNode.Text == scFile.contractName)
                         {
@@ -199,7 +209,7 @@ namespace Graphical2SmartContact_SCG
             }
             else
             {
-                foreach(var fileNode in solidityGenerator.allSolidityFiles)
+                foreach(var fileNode in contractComponents.allSolidityFiles)
                 {
                     if(e.Node.Text==fileNode.contractName)
                     {
@@ -446,136 +456,156 @@ namespace Graphical2SmartContact_SCG
 
         private void btn_parseXML2PC_Click(object sender, EventArgs e)
         {
-            if (graphicalParser.allRoles.Count>0)
+            if (treeView_displayYAWLRoles.Nodes.Count > 0 || (isBPMN && richTextBox_displayGraphical.Text!=null))
             {
-                // from process components to smart contract components
+                // from xml to process components
 
                 treeView_PCs.BeginUpdate();
                 treeView_PCs.Nodes.Clear();
-                //Step 1: generate SC tree table
-                var contracts_node = treeView_PCs.Nodes.Add("Process components");
-                contracts_node.NodeFont = new Font("Arial", 9);
-                foreach (var contractTemp in solidityGenerator.allSolidityFiles)
-                {
-                    var contract_node = contracts_node.Nodes.Add(contractTemp.contractName);
-                    contract_node.NodeFont = new Font("Arial", 9, FontStyle.Bold);
-                    //parent contracts
-                    if (contractTemp.parentContracts.Count > 0)
-                    {
-                        var parentContracts_node = contract_node.Nodes.Add("parent contract(s)");
-                        parentContracts_node.NodeFont = new Font("Arial", 8.5f, FontStyle.Bold);
-                        foreach (var parentC in contractTemp.parentContracts)
-                        {
-                            parentContracts_node.Nodes.Add(parentC);
-                        }
-                    }
-                    //state variables
-                    if (contractTemp.stateVariables.Count > 0)
-                    {
-                        var variables_node = contract_node.Nodes.Add("state variables");
-                        variables_node.NodeFont = new Font("Arial", 8.5f, FontStyle.Bold);
-                        foreach (var variableTemp in contractTemp.stateVariables)
-                        {
-                            var variable_node = variables_node.Nodes.Add(variableTemp.name);
-                            variable_node.Nodes.Add("type:" + variableTemp.type);
-                            if (variableTemp.value != null)
-                            {
-                                variable_node.Nodes.Add("value:" + variableTemp.value);
-                            }
-                        }
-                    }
-                    //modifiers
-                    if (contractTemp.modifiers.Count > 0)
-                    {
-                        var modifiers_node = contract_node.Nodes.Add("modifiers");
-                        modifiers_node.NodeFont = new Font("Arial", 8.5f, FontStyle.Bold);
-                        foreach (var modifierTemp in contractTemp.modifiers)
-                        {
-                            var modifier_node = modifiers_node.Nodes.Add(modifierTemp.name);
-                            if (modifierTemp.inputParam.Count > 0)
-                            {
-                                var modPara_node = modifier_node.Nodes.Add("input parameters");
-                                foreach (var modPara in modifierTemp.inputParam)
-                                {
-                                    modPara_node.Nodes.Add(modPara.type + " " + modPara.name);
-                                }
-                            }
-                            if (modifierTemp.statementsText != null)
-                            {
-                                var modstate = modifier_node.Nodes.Add("statements");
-                                modstate.Nodes.Add(modifierTemp.statementsText);
-                            }
-                        }
-                    }
-                    //functions
-                    if (contractTemp.functions.Count > 0)
-                    {
-                        var functions_node = contract_node.Nodes.Add("functions");
-                        functions_node.NodeFont = new Font("Arial", 8.5f, FontStyle.Bold);
-                        foreach (var functionTemp in contractTemp.functions)
-                        {
-                            var function_node = functions_node.Nodes.Add(functionTemp.name);
-                            if (functionTemp.inputParam.Count > 0)
-                            {
-                                var funPara_node = function_node.Nodes.Add("input parameters");
-                                foreach (var funPara in functionTemp.inputParam)
-                                {
-                                    funPara_node.Nodes.Add(funPara.type + " " + funPara.name);
-                                }
-                            }
-                            if (functionTemp.calledModifiers.Count > 0)
-                            {
-                                var funmodi_node = function_node.Nodes.Add("called modifiers");
-                                foreach (var funmodi in functionTemp.calledModifiers)
-                                {
-                                    funmodi_node.Nodes.Add(funmodi);
-                                }
-                            }
-                            if (functionTemp.keywords.Count > 0)
-                            {
-                                var funkey_node = function_node.Nodes.Add("keywords");
-                                foreach (var funkey in functionTemp.keywords)
-                                {
-                                    funkey_node.Nodes.Add(funkey);
-                                }
-                            }
-                            if (functionTemp.returnVaris.Count > 0)
-                            {
-                                var funretV_node = function_node.Nodes.Add("return variables");
-                                foreach (var funretV in functionTemp.returnVaris)
-                                {
-                                    funretV_node.Nodes.Add(funretV.type + " " + funretV.name);
-                                }
-                            }
-                            if (functionTemp.statementsText != null)
-                            {
-                                var funstate = function_node.Nodes.Add("statements");
-                                funstate.Nodes.Add(functionTemp.statementsText);
-                            }
-                        }
-                    }
-                    //enums
-                    if (contractTemp.enums.Count > 0)
-                    {
-                        var enums_node = contract_node.Nodes.Add("enums");
-                        enums_node.NodeFont = new Font("Arial", 8.5f, FontStyle.Bold);
-                        foreach (var enumTemp in contractTemp.enums)
-                        {
-                            var enum_node = enums_node.Nodes.Add(enumTemp.enumName);
-                            foreach (var enumValueTemp in enumTemp.enumValues)
-                            {
-                                enum_node.Nodes.Add(enumValueTemp);
-                            }
-                        }
-                    }
-                    //step 2: print out error messages
-                    richTextBox_errorMassage.Text = smartContractChecking.checkProcessComponents();
-                    
-                }
-                treeView_SCCs.EndUpdate();
-
-
+                //Step 1: generate PC tree table
+                var PCs_node = treeView_PCs.Nodes.Add("Process components");
+                PCs_node.NodeFont = new Font("Arial", 9.5f, FontStyle.Bold);
                 
+                var fileName_node = PCs_node.Nodes.Add("File name");
+                fileName_node.NodeFont = new Font("Arial", 9, FontStyle.Bold);
+                fileName_node.Nodes.Add(processComponents.fileName);
+                
+                //defined enums
+                if (processComponents.allDefinedEnums.Count > 0)
+                {
+                    var definedEnums_node = PCs_node.Nodes.Add("Defined enums");
+                    definedEnums_node.NodeFont = new Font("Arial", 8.5f, FontStyle.Bold);
+                    foreach (var definedEnum in processComponents.allDefinedEnums)
+                    {
+                        var definedEnum_node = definedEnums_node.Nodes.Add("name: "+definedEnum.enumName);
+                        foreach(var definedEnumValue in definedEnum.enumValues)
+                        {
+                            definedEnum_node.Nodes.Add("value: "+ definedEnumValue);
+                        }
+                        
+                    }
+                }
+                //local variables
+                if (processComponents.allLocalVariables.Count > 0)
+                {
+                    var variables_node = PCs_node.Nodes.Add("Local variables");
+                    variables_node.NodeFont = new Font("Arial", 8.5f, FontStyle.Bold);
+                    foreach (var variableTemp in processComponents.allLocalVariables)
+                    {
+                        var variable_node = variables_node.Nodes.Add(variableTemp.name);
+                        variable_node.Nodes.Add("type: " + variableTemp.type);
+                        if (variableTemp.value != null)
+                        {
+                            variable_node.Nodes.Add("value: " + variableTemp.value);
+                        }
+                    }
+                }
+
+                //roles or participants
+                if (processComponents.allRoles.Count > 0)
+                {
+                    var roles_node = PCs_node.Nodes.Add("Roles");
+                    roles_node.NodeFont = new Font("Arial", 8.5f, FontStyle.Bold);
+                    foreach (var eachRole in processComponents.allRoles)
+                    {
+                        var role_node = roles_node.Nodes.Add(eachRole.name);
+                        if (eachRole.id != null) { role_node.Nodes.Add("id: " + eachRole.id); }
+                        if (eachRole.address != null) { role_node.Nodes.Add("address: " + eachRole.address); }
+                        if (eachRole.bpmnProcessName != null) { role_node.Nodes.Add("Process name: " + eachRole.bpmnProcessName); }
+
+                        if (eachRole.actionTypes.Count > 0)
+                        {
+                            var actionTypes_node = role_node.Nodes.Add("Action types");
+                            foreach (var actionType in eachRole.actionTypes)
+                            {
+                                actionTypes_node.Nodes.Add(actionType);
+                            }
+                        }
+                        if (eachRole.TaskIDs.Count > 0)
+                        {
+                            var functionNames_node = role_node.Nodes.Add("Task names");
+                            foreach (var functionName in eachRole.TaskIDs)
+                            {
+                                functionNames_node.Nodes.Add(functionName);
+                            }
+                        }
+                    }
+                }
+                //Task´or activity
+                if (processComponents.allTasks.Count > 0)
+                {
+                    var tasks_node = PCs_node.Nodes.Add("Tasks");
+                    tasks_node.NodeFont = new Font("Arial", 8.5f, FontStyle.Bold);
+                    foreach (var eachTask in processComponents.allTasks)
+                    {
+                        var task_node = tasks_node.Nodes.Add(eachTask.taskID);
+                        if(eachTask.taskName!=null)
+                        {
+                            task_node.Nodes.Add("name: " + eachTask.taskName);
+                        }
+                        if (eachTask.operateRoles.Count > 0)
+                        {
+                            var currentRoles_node = task_node.Nodes.Add("Role(s)");
+                            foreach (var processRole in eachTask.operateRoles)
+                            {
+                                currentRoles_node.Nodes.Add(processRole.name);
+                            }
+                        }
+                        if (eachTask.actionType!=null)
+                        {
+                            task_node.Nodes.Add("Action type: " + eachTask.actionType);
+                        }
+                        else
+                        {
+                            //TODO: Checker! Print out error message!!!!
+                        }
+
+                        if (eachTask.inputVariables.Count > 0)
+                        {
+                            var inputVari_node = task_node.Nodes.Add("Input variables");
+                            foreach (var inputVari in eachTask.inputVariables)
+                            {
+                                inputVari_node.Nodes.Add(inputVari.type + " " + inputVari.name);
+                            }
+                        }
+                        if (eachTask.outputVariables.Count > 0)
+                        {
+                            var outputVari_node = task_node.Nodes.Add("Output variables");
+                            foreach (var outputVari in eachTask.outputVariables)
+                            {
+                                outputVari_node.Nodes.Add(outputVari.type + " " + outputVari.name);
+                            }
+                        }
+                    }
+                }
+                //process flow
+                if (processComponents.allFlows.Count > 0)
+                {
+                    var flows_node = PCs_node.Nodes.Add("Flows");
+                    flows_node.NodeFont = new Font("Arial", 8.5f, FontStyle.Bold);
+                    foreach (var eachFlow in processComponents.allFlows)
+                    {
+                        var flow_node = flows_node.Nodes.Add(eachFlow.currentTaskID);
+                        if(eachFlow.nextTasks.Count>0)
+                        {
+                            var nextProcesses_node = flow_node.Nodes.Add("Next task(s)");
+                            foreach(var nextProcess in eachFlow.nextTasks)
+                            {
+                                var nextProcess_node = nextProcesses_node.Nodes.Add(nextProcess.taskID);
+                                if(nextProcess.condition!=null)
+                                {
+                                    nextProcess_node.Nodes.Add("condition: " + nextProcess.condition);
+                                }
+                                
+                            }
+                        }
+                    }
+                }
+                treeView_PCs.EndUpdate();
+
+                //step 2: print out error messages
+                richTextBox_errorMassage.Text = checker.checkResults();
+                checker.errorMessages = "";
             }
 
             
@@ -592,10 +622,12 @@ namespace Graphical2SmartContact_SCG
 
                 treeView_SCCs.BeginUpdate();
                 treeView_SCCs.Nodes.Clear();
-                //Step 1: generate SC tree table
+                //Step 1: translate form PCs to SCCs
+                translator.generateSolidityText(processComponents, contractComponents, checker);
+                //Step 2: generate SC tree table
                 var contracts_node = treeView_SCCs.Nodes.Add("contracts");
                 contracts_node.NodeFont = new Font("Arial", 9);
-                foreach (var contractTemp in solidityGenerator.allSolidityFiles)
+                foreach (var contractTemp in contractComponents.allSolidityFiles)
                 {
                     var contract_node = contracts_node.Nodes.Add(contractTemp.contractName);
                     contract_node.NodeFont = new Font("Arial", 9, FontStyle.Bold);
@@ -712,8 +744,9 @@ namespace Graphical2SmartContact_SCG
                 treeView_SCCs.EndUpdate();
 
 
-                //step 2: print out error messages
-                richTextBox_errorMassage.Text = smartContractChecking.checkSmartContractComponents();
+                //step 3: print out error messages
+                richTextBox_errorMassage.Text = checker.checkResults();
+                checker.errorMessages = "";
             }
         }
 
@@ -721,23 +754,23 @@ namespace Graphical2SmartContact_SCG
         {
             treeView_SCfileTree.BeginUpdate();
             treeView_SCfileTree.Nodes.Clear();
-            if (graphicalParser.allTasks.Count > 0 && treeView_displayYAWLRoles.Nodes.Count > 0)
-            {
+            if(treeView_SCCs.Nodes.Count>0)
+            { 
                 //Automated generate contract folder name
                 if (strContractsFolderName == "contracts_")
                 {
                     strContractsFolderName += Guid.NewGuid().ToString().GetHashCode().ToString("x");
                 }
                 var contracts_node = treeView_SCfileTree.Nodes.Add(strContractsFolderName);
-                solidityGenerator.generateSolidityText(graphicalParser);
 
-                foreach (var scFile in solidityGenerator.allSolidityFiles)
+                foreach (var scFile in contractComponents.allSolidityFiles)
                 {
                     contracts_node.Nodes.Add(scFile.contractName);
                 }
                 
                 //step 2: print out error messages
-                richTextBox_errorMassage.Text = smartContractChecking.checkSmartContractCodes();
+                richTextBox_errorMassage.Text = checker.checkResults();
+                checker.errorMessages = "";
             }
             treeView_SCfileTree.EndUpdate();
 
