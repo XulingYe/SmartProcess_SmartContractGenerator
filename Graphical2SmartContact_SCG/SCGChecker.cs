@@ -11,9 +11,19 @@ namespace Graphical2SmartContact_SCG
 {
     public class SCGChecker
     {
-        public string errorMessages = "";
+        string errorMessages = "";
 
-        void parseSC(List<SolidityFile> SCFiles)
+        public string getErrorMessages()
+        {
+            return errorMessages;
+        }
+
+        public void setErrorMessages(string errorMes)
+        {
+            errorMessages += errorMes;
+        }
+
+        void parseSC(List<SmartContract> SCFiles)
         {
 
         }

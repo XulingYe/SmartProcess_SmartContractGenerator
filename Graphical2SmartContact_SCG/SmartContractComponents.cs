@@ -9,16 +9,16 @@ namespace Graphical2SmartContact_SCG
 {
     public class SmartContractComponents
     {
-        public List<SolidityFile> allSolidityFiles = new List<SolidityFile>();
-        public List<MultiRolesModifier> allMultiModifiers = new List<MultiRolesModifier>();
+        public List<SmartContract> allSmartContracts = new List<SmartContract>();
+        public List<MultiParticipantsModifier> allMultiModifiers = new List<MultiParticipantsModifier>();
 
-        //MultiRolesModifier is used to generate a modifier with more than one role.
-        public class MultiRolesModifier
+        //MultiParticipantsModifier is used to generate a modifier with more than one participant.
+        public class MultiParticipantsModifier
         {
             public string modifierName;
-            public List<Role> roles = new List<Role>();
+            public List<Participant> participants = new List<Participant>();
         }
-        public class SolidityFile
+        public class SmartContract
         {
             public string contractName = "";
             public string fileAllText = "// SPDX-License-Identifier: GPL-3.0\npragma solidity >=0.4.22 <0.9.0;\n\n";
@@ -27,6 +27,7 @@ namespace Graphical2SmartContact_SCG
             public List<SCGVariable> stateVariables = new List<SCGVariable>();
             public List<Modifier> modifiers = new List<Modifier>();
             public List<Function> functions = new List<Function>();
+            public List<SCGStruct> structs = new List<SCGStruct>();
         };
         public class Modifier
         {
@@ -43,12 +44,18 @@ namespace Graphical2SmartContact_SCG
         public class Function
         {
             public string name;
-            public List<Parameter> inputParam = new List<Parameter>();
+            public List<Parameter> inputParams = new List<Parameter>();
             public List<string> calledModifiers = new List<string>();
             public List<string> keywords = new List<string>();
             public List<Parameter> returnVaris = new List<Parameter>();
             public string statementsText;
-            public string actionType; //tag action
+            public List<string> calledFunctions = new List<string>(); 
+        }
+
+        public class SCGStruct
+        {
+            public string structName;
+            public List<Parameter> parameters = new List<Parameter>();
         }
     }
 }

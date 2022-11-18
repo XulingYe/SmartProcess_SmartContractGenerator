@@ -34,8 +34,12 @@ namespace Graphical2SmartContact_SCG
             this.textBox_SCExportedPath = new System.Windows.Forms.TextBox();
             this.textBox_GraphicalImportedPath = new System.Windows.Forms.TextBox();
             this.groupBox_graphicalPM = new System.Windows.Forms.GroupBox();
-            this.treeView_displayYAWLRoles = new System.Windows.Forms.TreeView();
-            this.btn_importYAWLRoles = new System.Windows.Forms.Button();
+            this.groupBox_Action = new System.Windows.Forms.GroupBox();
+            this.button1 = new System.Windows.Forms.Button();
+            this.label9 = new System.Windows.Forms.Label();
+            this.listBox_CurrentAction = new System.Windows.Forms.ListBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
             this.richTextBox_displayGraphical = new System.Windows.Forms.RichTextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.groupBox_SCcodes = new System.Windows.Forms.GroupBox();
@@ -55,6 +59,7 @@ namespace Graphical2SmartContact_SCG
             this.groupBox_CheckingResults = new System.Windows.Forms.GroupBox();
             this.label6 = new System.Windows.Forms.Label();
             this.groupBox_graphicalPM.SuspendLayout();
+            this.groupBox_Action.SuspendLayout();
             this.groupBox_SCcodes.SuspendLayout();
             this.groupBox_generatedComponents.SuspendLayout();
             this.groupBox_CheckingResults.SuspendLayout();
@@ -98,47 +103,94 @@ namespace Graphical2SmartContact_SCG
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_GraphicalImportedPath.Location = new System.Drawing.Point(112, 30);
             this.textBox_GraphicalImportedPath.Name = "textBox_GraphicalImportedPath";
-            this.textBox_GraphicalImportedPath.Size = new System.Drawing.Size(487, 22);
+            this.textBox_GraphicalImportedPath.Size = new System.Drawing.Size(612, 22);
             this.textBox_GraphicalImportedPath.TabIndex = 6;
             // 
             // groupBox_graphicalPM
             // 
-            this.groupBox_graphicalPM.Controls.Add(this.treeView_displayYAWLRoles);
-            this.groupBox_graphicalPM.Controls.Add(this.btn_importYAWLRoles);
+            this.groupBox_graphicalPM.Controls.Add(this.groupBox_Action);
             this.groupBox_graphicalPM.Controls.Add(this.richTextBox_displayGraphical);
             this.groupBox_graphicalPM.Controls.Add(this.label2);
             this.groupBox_graphicalPM.Controls.Add(this.btn_importGraphical);
             this.groupBox_graphicalPM.Controls.Add(this.textBox_GraphicalImportedPath);
             this.groupBox_graphicalPM.Location = new System.Drawing.Point(6, 7);
             this.groupBox_graphicalPM.Name = "groupBox_graphicalPM";
-            this.groupBox_graphicalPM.Size = new System.Drawing.Size(746, 329);
+            this.groupBox_graphicalPM.Size = new System.Drawing.Size(730, 329);
             this.groupBox_graphicalPM.TabIndex = 8;
             this.groupBox_graphicalPM.TabStop = false;
             this.groupBox_graphicalPM.Text = "YAWL";
             // 
-            // treeView_displayYAWLRoles
+            // groupBox_Action
             // 
-            this.treeView_displayYAWLRoles.Location = new System.Drawing.Point(607, 66);
-            this.treeView_displayYAWLRoles.Name = "treeView_displayYAWLRoles";
-            this.treeView_displayYAWLRoles.Size = new System.Drawing.Size(129, 257);
-            this.treeView_displayYAWLRoles.TabIndex = 11;
+            this.groupBox_Action.Controls.Add(this.button1);
+            this.groupBox_Action.Controls.Add(this.label9);
+            this.groupBox_Action.Controls.Add(this.listBox_CurrentAction);
+            this.groupBox_Action.Controls.Add(this.label8);
+            this.groupBox_Action.Controls.Add(this.label7);
+            this.groupBox_Action.Location = new System.Drawing.Point(597, 58);
+            this.groupBox_Action.Name = "groupBox_Action";
+            this.groupBox_Action.Size = new System.Drawing.Size(127, 265);
+            this.groupBox_Action.TabIndex = 9;
+            this.groupBox_Action.TabStop = false;
             // 
-            // btn_importYAWLRoles
+            // button1
             // 
-            this.btn_importYAWLRoles.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_importYAWLRoles.Location = new System.Drawing.Point(624, 26);
-            this.btn_importYAWLRoles.Name = "btn_importYAWLRoles";
-            this.btn_importYAWLRoles.Size = new System.Drawing.Size(100, 30);
-            this.btn_importYAWLRoles.TabIndex = 10;
-            this.btn_importYAWLRoles.Text = "Import roles";
-            this.btn_importYAWLRoles.UseVisualStyleBackColor = true;
-            this.btn_importYAWLRoles.Click += new System.EventHandler(this.btn_importYAWLRoles_Click);
+            this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.button1.Location = new System.Drawing.Point(6, 210);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(115, 50);
+            this.button1.TabIndex = 4;
+            this.button1.Text = "Add more Action(s)";
+            this.button1.UseVisualStyleBackColor = true;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(6, 98);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(109, 17);
+            this.label9.TabIndex = 3;
+            this.label9.Text = "Current Actions:";
+            // 
+            // listBox_CurrentAction
+            // 
+            this.listBox_CurrentAction.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.listBox_CurrentAction.FormattingEnabled = true;
+            this.listBox_CurrentAction.ItemHeight = 16;
+            this.listBox_CurrentAction.Items.AddRange(new object[] {
+            "add",
+            "pay"});
+            this.listBox_CurrentAction.Location = new System.Drawing.Point(6, 118);
+            this.listBox_CurrentAction.Name = "listBox_CurrentAction";
+            this.listBox_CurrentAction.Size = new System.Drawing.Size(115, 68);
+            this.listBox_CurrentAction.TabIndex = 2;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(36, 44);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(51, 17);
+            this.label8.TabIndex = 1;
+            this.label8.Text = "PayBU";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(6, 18);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(97, 17);
+            this.label7.TabIndex = 0;
+            this.label7.Text = "Selected task:";
             // 
             // richTextBox_displayGraphical
             // 
             this.richTextBox_displayGraphical.Location = new System.Drawing.Point(5, 66);
             this.richTextBox_displayGraphical.Name = "richTextBox_displayGraphical";
-            this.richTextBox_displayGraphical.Size = new System.Drawing.Size(594, 257);
+            this.richTextBox_displayGraphical.Size = new System.Drawing.Size(586, 257);
             this.richTextBox_displayGraphical.TabIndex = 8;
             this.richTextBox_displayGraphical.Text = "";
             // 
@@ -273,9 +325,9 @@ namespace Graphical2SmartContact_SCG
             // 
             // btn_parseXML2PC
             // 
-            this.btn_parseXML2PC.Location = new System.Drawing.Point(752, 126);
+            this.btn_parseXML2PC.Location = new System.Drawing.Point(742, 126);
             this.btn_parseXML2PC.Name = "btn_parseXML2PC";
-            this.btn_parseXML2PC.Size = new System.Drawing.Size(85, 60);
+            this.btn_parseXML2PC.Size = new System.Drawing.Size(83, 60);
             this.btn_parseXML2PC.TabIndex = 12;
             this.btn_parseXML2PC.Text = "Parse \r\n===>";
             this.btn_parseXML2PC.UseVisualStyleBackColor = true;
@@ -331,6 +383,8 @@ namespace Graphical2SmartContact_SCG
             this.SizeChanged += new System.EventHandler(this.MainForm_SizeChanged);
             this.groupBox_graphicalPM.ResumeLayout(false);
             this.groupBox_graphicalPM.PerformLayout();
+            this.groupBox_Action.ResumeLayout(false);
+            this.groupBox_Action.PerformLayout();
             this.groupBox_SCcodes.ResumeLayout(false);
             this.groupBox_SCcodes.PerformLayout();
             this.groupBox_generatedComponents.ResumeLayout(false);
@@ -357,8 +411,6 @@ namespace Graphical2SmartContact_SCG
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.GroupBox groupBox_generatedComponents;
         private System.Windows.Forms.TreeView treeView_SCCs;
-        private System.Windows.Forms.Button btn_importYAWLRoles;
-        private System.Windows.Forms.TreeView treeView_displayYAWLRoles;
         private System.Windows.Forms.TreeView treeView_SCfileTree;
         private System.Windows.Forms.RichTextBox richTextBox_errorMassage;
         private System.Windows.Forms.Label label4;
@@ -369,6 +421,12 @@ namespace Graphical2SmartContact_SCG
         private System.Windows.Forms.Button btn_translateSCC2SC;
         private System.Windows.Forms.GroupBox groupBox_CheckingResults;
         private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.GroupBox groupBox_Action;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.ListBox listBox_CurrentAction;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Label label7;
     }
 }
 

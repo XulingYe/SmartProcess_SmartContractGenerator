@@ -7,6 +7,7 @@ using static Graphical2SmartContact_SCG.ProcessComponents;
 using static Graphical2SmartContact_SCG.SCGParser;
 using static Graphical2SmartContact_SCG.SmartContractComponents;
 using static Graphical2SmartContact_SCG.SCGChecker;
+using static Graphical2SmartContact_SCG.ActionTranslator;
 
 namespace Graphical2SmartContact_SCG
 {
@@ -17,52 +18,68 @@ namespace Graphical2SmartContact_SCG
         public string solidityProcessFlowAllText = "";
         public string SolidityMainContractName = "default";*/
         
-        public void generateSolidityText(ProcessComponents pcs, SmartContractComponents sccs, SCGChecker checker)
+        public void generateSolidityMain(ProcessComponents pcs, SmartContractComponents sccs, SCGChecker checker)
         {
-            sccs.allSolidityFiles.Clear();
+            sccs.allSmartContracts.Clear();
 
-            SolidityFile sFile = new SolidityFile();
+            SmartContract mainContract = new SmartContract();
             pcs.fileName = checker.checkNameValid(pcs.fileName);
-            sFile.contractName = pcs.fileName;
+            mainContract.contractName = pcs.fileName;
 
-            //SC process flow smart contract
-            string SCProcessFlow_contractName = "SCProcessFlow";
-            sFile.fileAllText += "import \"./" + SCProcessFlow_contractName + ".sol\";\n\n";
-            generateSolidityProcessFlow(pcs.allFlows, SCProcessFlow_contractName, sccs, checker);
+            //SCG flow contract
+            string SCProcessFlow_contractName = "SCGFlow";
+            mainContract.fileAllText += "import \"./" + SCProcessFlow_contractName + ".sol\";\n\n";
+            generateSCGFlowContract(pcs.allFlows, SCProcessFlow_contractName, sccs, checker);
+            mainContract.parentContracts.Add(SCProcessFlow_contractName);
 
+            //SCG action contract
+            string SCGAction_contractName = "SCGAction";
+            mainContract.fileAllText += "import \"./" + SCGAction_contractName + ".sol\";\n\n";
+            generateSCGActionContract(pcs.allActions, SCGAction_contractName, sccs, checker);
+            mainContract.parentContracts.Add(SCGAction_contractName);
+
+            mainContract.fileAllText += "contract " + pcs.fileName + " is ";
+            //all the parent contracts
+            for(int i = 0; i< mainContract.parentContracts.Count; i++)
+            {
+                mainContract.fileAllText += mainContract.parentContracts[i];
+                if (i< mainContract.parentContracts.Count-1)
+                {
+                    mainContract.fileAllText += ", ";
+                }
+            }
+            mainContract.fileAllText += "{\n";
             
-            sFile.fileAllText += "contract " + pcs.fileName + " is " + SCProcessFlow_contractName + "{\n";
-            sFile.parentContracts.Add(SCProcessFlow_contractName);
             //enums
-            sFile.fileAllText += "//Data type definition\n";
+            mainContract.fileAllText += "//Data type definition\n";
             foreach (var enum_graphical in pcs.allDefinedEnums)
             {
                 DefineEnum enumTemp = new DefineEnum();
                 enum_graphical.enumName = checker.checkNameValid(enum_graphical.enumName);
-                sFile.fileAllText += "    enum " + enum_graphical.enumName + " { ";
+                mainContract.fileAllText += "    enum " + enum_graphical.enumName + " { ";
                 enumTemp.enumName = enum_graphical.enumName;
 
                 for (int i = 0; i < enum_graphical.enumValues.Count; i++)
                 {
                     if(i>0)
                     {
-                        sFile.fileAllText += ", ";
+                        mainContract.fileAllText += ", ";
                     }
-                    sFile.fileAllText += enum_graphical.enumValues[i];
+                    mainContract.fileAllText += enum_graphical.enumValues[i];
                     enumTemp.enumValues.Add(enum_graphical.enumValues[i]);
                 }
-                sFile.fileAllText += " }\n";
-                sFile.enums.Add(enumTemp);
+                mainContract.fileAllText += " }\n";
+                mainContract.enums.Add(enumTemp);
             }
 
             //state variables
-            sFile.fileAllText += "\n//Defined state variables\n";
+            mainContract.fileAllText += "\n//Defined state variables\n";
             foreach (var localvari_graphical in pcs.allLocalVariables)
             {
                 if(localvari_graphical.type != "Action")//Action type should not be stored
                 {
                     SCGVariable variableTemp = new SCGVariable();
-                    sFile.fileAllText += "    " + localvari_graphical.type + " "/*" public "*/ + localvari_graphical.name;
+                    mainContract.fileAllText += "    " + localvari_graphical.type + " "/*" public "*/ + localvari_graphical.name;
                     variableTemp.type = localvari_graphical.type;
                     variableTemp.name = localvari_graphical.name;
                     if (localvari_graphical.value != null && localvari_graphical.value != "" 
@@ -70,148 +87,140 @@ namespace Graphical2SmartContact_SCG
                     {
                         if(localvari_graphical.type=="string")
                         {
-                            sFile.fileAllText += " = \"" + localvari_graphical.value + "\"";
+                            mainContract.fileAllText += " = \"" + localvari_graphical.value + "\"";
                             variableTemp.value = "\"" + localvari_graphical.value + "\"";
                         }
                         else 
                         {
-                            sFile.fileAllText += " = " + localvari_graphical.value;
+                            mainContract.fileAllText += " = " + localvari_graphical.value;
                             variableTemp.value = localvari_graphical.value;
                         }
                     
                     }
-                    sFile.fileAllText += ";\n";
-                    sFile.stateVariables.Add(variableTemp);
+                    mainContract.fileAllText += ";\n";
+                    mainContract.stateVariables.Add(variableTemp);
                 }
 
             }
 
-            //roles in state variables
-            sFile.fileAllText += "\n//Roles in state variables\n";
-            var strRolesInModifier = "";
-            foreach (var role_graphical in pcs.allRoles)
+            //participants in state variables
+            /*mainContract.fileAllText += "\n//Participants in state variables\n";
+            var strParticipantsInModifier = "";
+            foreach (var participant_graphical in pcs.allParticipants)
             {
                 SCGVariable variTemp = new SCGVariable();
                 //state variable
-                sFile.fileAllText += "    address ";
+                mainContract.fileAllText += "    address ";
                 variTemp.type = "address";
-                if (role_graphical.actionTypes.Contains("pay"))
+                if (participant_graphical.actionTypes.Contains("pay"))
                 {
-                    sFile.fileAllText += "payable ";
+                    mainContract.fileAllText += "payable ";
                     variTemp.type += " payable";
                 }
-                role_graphical.name = checker.checkNameValid(role_graphical.name);
-                sFile.fileAllText += role_graphical.name;
-                variTemp.name = role_graphical.name;
-
-                if (role_graphical.address != null && role_graphical.address != "")
+                participant_graphical.name = checker.checkNameValid(participant_graphical.name);
+                mainContract.fileAllText += participant_graphical.name;
+                variTemp.name = participant_graphical.name;
+                var founAddr = participant_graphical.allInfo.Find(x => x.type == "address");
+                if (founAddr!=null)
                 {
-                    sFile.fileAllText += " = ";
-                    string strRoleValue;
-                    if(role_graphical.actionTypes.Contains("pay"))
+                    mainContract.fileAllText += " = ";
+                    string strParticipantValue;
+                    if(participant_graphical.actionTypes.Contains("pay"))
                     {
-                        strRoleValue = "payable(" + role_graphical.address + ")";
+                        strParticipantValue = "payable(" + founAddr.value + ")";
                     }
                     else
                     {
-                        strRoleValue = role_graphical.address;
+                        strParticipantValue = founAddr.value;
                     }
-                    sFile.fileAllText += strRoleValue;
-                    variTemp.value = strRoleValue;
+                    mainContract.fileAllText += strParticipantValue;
+                    variTemp.value = strParticipantValue;
                 }
-                sFile.fileAllText += ";\n";
-                sFile.stateVariables.Add(variTemp);
+                mainContract.fileAllText += ";\n";
+                mainContract.stateVariables.Add(variTemp);
 
-                //modifier
-                Modifier tempModi = new Modifier();
-                strRolesInModifier += "    modifier Only" + role_graphical.name + "(){\n        ";
-                tempModi.name = "Only" + role_graphical.name;
-                tempModi.statementsText = "require(msg.sender == " + role_graphical.name
-                    + ",\" Only " + role_graphical.name + " can call this function.\");";
-                strRolesInModifier += tempModi.statementsText;
-                strRolesInModifier += "\n        _;\n    }\n";
-                sFile.modifiers.Add(tempModi);
-            }
-
-            //defined modifiers in graphical representations
-            /*sFile.fileAllText += "\n//Modifiers\n";
-            foreach (var modifier_graphical in graphicalP.allModifiers)
-            {
-                sFile.fileAllText += "    modifier " + modifier_graphical.name + "(";
-                if(modifier_graphical.inputVaris.Count>0)
-                {
-                    for(int i = 0; i < modifier_graphical.inputVaris.Count; i++)
-                    {
-                        if(i>0)
-                        {
-                            sFile.fileAllText += ", ";
-                        }
-                        sFile.fileAllText += modifier_graphical.inputVaris[i].type 
-                            + " " + modifier_graphical.inputVaris[i].name;
-                    }
-                }
-
-                sFile.fileAllText += "){\n        require(\n          " + modifier_graphical.condition
-                    +",\n           \"" + modifier_graphical.errorString + "\"\n"
-                    + "         );\n        _;\n    }\n";
+                
             }*/
 
-            //Roles in modifiers
-            sFile.fileAllText += "\n//Roles in modifiers\n";
-            sFile.fileAllText += strRolesInModifier;
-            //MultiRoles in modifiers
-            foreach(var multiRolesModifier in pcs.allMultiRoles)
+            //defined modifiers in graphical representations
+            mainContract.fileAllText += "\n//Modifiers\n";
+            foreach (var eachParticipant in pcs.allParticipants)
+            {
+                //modifier
+                Modifier tempModi = new Modifier();
+                tempModi.name = "Only" + eachParticipant.name;
+                mainContract.fileAllText += "    modifier " + tempModi.name + "("
+                    + "){\n        ";
+                tempModi.statementsText = "require(\n          msg.sender == ";
+
+                var foundAddr = eachParticipant.allInfo.Find(x => x.type == "address");
+                tempModi.statementsText += foundAddr.name;
+                tempModi.statementsText += ",\n           \"Only " + eachParticipant.name + " can access this function.\"\n"
+                    + "         );\n";
+
+
+                mainContract.fileAllText += tempModi.statementsText +"        _;\n    }\n";
+                mainContract.modifiers.Add(tempModi);
+                
+                
+            }
+
+            //Participants in modifiers
+            //mainContract.fileAllText += "\n//Participants in modifiers\n";
+            //mainContract.fileAllText += strParticipantsInModifier;
+            //MultiParticipants in modifiers
+            foreach(var multiParticipantsModifier in pcs.allMultiParticipants)
             {
                 Modifier temp_modifier = new Modifier();
                 var modifierName = "Only";
                 var modifierCondition = "";
                 var modifierErrorMessage = "Only ";
-                MultiRolesModifier tempMultiRolesModifier = new MultiRolesModifier();
-                tempMultiRolesModifier.roles = multiRolesModifier.roles;
-                for(int i = 0; i< multiRolesModifier.roles.Count; i++)
+                MultiParticipantsModifier tempMultiParticipantsModifier = new MultiParticipantsModifier();
+                tempMultiParticipantsModifier.participants = multiParticipantsModifier.participants;
+                for(int i = 0; i< multiParticipantsModifier.participants.Count; i++)
                 {
-                    multiRolesModifier.roles[i].name = checker.checkNameValid(multiRolesModifier.roles[i].name);
-                    var strRoleName = multiRolesModifier.roles[i].name;
+                    multiParticipantsModifier.participants[i].name = checker.checkNameValid(multiParticipantsModifier.participants[i].name);
+                    var strParticipantName = multiParticipantsModifier.participants[i].name;
                     if(i>0)
                     {
                         modifierName += "Or";
                         modifierCondition += " || ";
                         modifierErrorMessage += " or ";
                     }
-                    modifierName += strRoleName;
-                    modifierCondition += "msg.sender == " + strRoleName + "Address";
-                    modifierErrorMessage += strRoleName;
+                    modifierName += strParticipantName;
+                    modifierCondition += "msg.sender == " + strParticipantName + "Address";
+                    modifierErrorMessage += strParticipantName;
 
                 }
                 //Modifier
-                sFile.fileAllText += "    modifier " + modifierName + "(){\n        ";
+                mainContract.fileAllText += "    modifier " + modifierName + "(){\n        ";
                 temp_modifier.statementsText = "require(" + modifierCondition + ",\" " + modifierErrorMessage
                     + " can call this function.\");";
-                sFile.fileAllText += temp_modifier.statementsText;
-                sFile.fileAllText += "\n        _;\n    }\n";
-                tempMultiRolesModifier.modifierName = modifierName;
-                sccs.allMultiModifiers.Add(tempMultiRolesModifier);
+                mainContract.fileAllText += temp_modifier.statementsText;
+                mainContract.fileAllText += "\n        _;\n    }\n";
+                tempMultiParticipantsModifier.modifierName = modifierName;
+                sccs.allMultiModifiers.Add(tempMultiParticipantsModifier);
                 //add into file
                 temp_modifier.name = modifierName;
-                sFile.modifiers.Add(temp_modifier); 
+                mainContract.modifiers.Add(temp_modifier); 
             }
             
 
             //functions
-            sFile.fileAllText += "\n//Functions\n";
+            mainContract.fileAllText += "\n//Functions\n";
             foreach (var function_yawl in pcs.allTasks)
             {
                 //Function fun_temp;
-                sFile.fileAllText += addSolidityFunction(function_yawl, pcs.allLocalVariables, sccs, checker, out Function fun_temp);
-                sFile.functions.Add(fun_temp);
+                mainContract.fileAllText += addTaskFunction(function_yawl, pcs.allLocalVariables, sccs, checker, out Function fun_temp);
+                mainContract.functions.Add(fun_temp);
             }
-            sFile.fileAllText += "}";
-            sccs.allSolidityFiles.Add(sFile);
+            mainContract.fileAllText += "}";
+            sccs.allSmartContracts.Add(mainContract);
         }
 
-        void generateSolidityProcessFlow(List<Flow> allFlows, string contractName, SmartContractComponents sccs, SCGChecker checker)
+        void generateSCGFlowContract(List<Flow> allFlows, string contractName, SmartContractComponents sccs, SCGChecker checker)
         {
-            SolidityFile file = new SolidityFile();
+            SmartContract file = new SmartContract();
             file.contractName = checker.checkNameValid(contractName);
             
             file.fileAllText += "contract " + file.contractName + "{\n";
@@ -229,16 +238,16 @@ namespace Graphical2SmartContact_SCG
                 {
                     file.fileAllText += ", ";
                 }
-                if (flow.currentTaskID != "InputCondition")
+                if (flow.sourceRef != "InputCondition")
                 {
-                    string strProcessName = "To" + flow.currentTaskID;
+                    string strProcessName = "To" + flow.sourceRef;
                     file.fileAllText += strProcessName;
                     enumProcessFlowTemp.enumValues.Add(strProcessName);
                     count++;
                 }
                 else
                 {
-                    initailValue = "ProcessFlow.To" + flow.nextTasks[0].taskID;
+                    initailValue = "ProcessFlow.To" + flow.TargetRef;
                 }
             }
             file.fileAllText += " }\n\n";
@@ -258,7 +267,7 @@ namespace Graphical2SmartContact_SCG
                     + "             _;\n             return;\n           }\n        }\n        "
                     + "revert(\"Invalid state of the process flow. Please check by getCurrentProcessState().\");";
             file.fileAllText += strModStatement + "\n    }\n\n";
-            //add modifier to allSolidityFiles list
+            //add modifier to allSmartContracts list
             Modifier modTemp = new Modifier();
             modTemp.name = "inProcessFlow";
             Parameter paraTemp = new Parameter();
@@ -306,10 +315,10 @@ namespace Graphical2SmartContact_SCG
             file.fileAllText += "}\n";
 
 
-            sccs.allSolidityFiles.Add(file);
+            sccs.allSmartContracts.Add(file);
         }
 
-        string addSolidityFunction(GraphicalTask task,List<SCGVariable> loclaVariables, SmartContractComponents sccs, SCGChecker checker, out Function func)
+        string addTaskFunction(SCGTask task,List<SCGVariable> loclaVariables, SmartContractComponents sccs, SCGChecker checker, out Function func)
         {
             //In Graphical workflow, inputParam is for output;
             //OutputParam is for input;
@@ -320,53 +329,19 @@ namespace Graphical2SmartContact_SCG
             function_text += "    function " + task.taskID + "(";
             func = new Function();
             func.name = task.taskID;
-            int countInputVaris = 0;
-            //input parameters
-            foreach (var inputVari in task.outputVariables)
+            for(int i = 0;  i< task.actions.Count; i++)
             {
-                Parameter para_temp = new Parameter();
-                para_temp.name = inputVari.name;
-                if (countInputVaris > 0)
-                {
-                    function_text += ", ";
-                }
-                if (inputVari.type == "string")
-                {
-                    function_text += inputVari.type + " memory " + inputVari.name;
-                    para_temp.type = inputVari.type + " memory";
-                }
-                else
-                {
-                    function_text += inputVari.type + " " + inputVari.name;
-                    para_temp.type = inputVari.type;
-                }
-                countInputVaris++;
-                func.inputParam.Add(para_temp);
+                if(i>0)
+                { function_text += ", "; }
+                function_text += translateInOutputPara(task.actions[i].inputVariables, func.inputParams, true);
             }
-            //in/output variables for input
-            /*foreach (var inOutputVari in task.inOutVariables)
-            {
-                if (countInputVaris > 0)
-                {
-                    function_text += ", ";
-                }
-                if (inOutputVari.type == "string")
-                {
-                    function_text += inOutputVari.type + " memory _" + inOutputVari.name;
-                }
-                else
-                {
-                    function_text += inOutputVari.type + " _" + inOutputVari.name;
-                }
-                countInputVaris++;
-            }*/
             function_text += ")\n        public\n";
             func.keywords.Add("public");
             /*if (function.inputVariables.Count == 0)
             {
                 function_text += "        view\n";
             }*/
-            if (task.actionType == "pay")// && task.payTypeVariable != null)
+            if (task.actions.Exists(x=>x.actionID == "pay"))// && task.payTypeVariable != null)
             {
                 function_text += "        payable\n";
                 func.keywords.Add("payable");
@@ -386,15 +361,15 @@ namespace Graphical2SmartContact_SCG
                 }
                 function_text += ")\n";
             }*/
-            if(task.operateRoles.Count == 1)
+            if(task.operateParticipants.Count == 1)
             {
-                var str_temp = "Only" + task.operateRoles[0].name + "()";
+                var str_temp = "Only" + task.operateParticipants[0].name + "()";
                 func.calledModifiers.Add(str_temp);
                 function_text += "        " + str_temp + " \n";//////////////
             }
-            else if (task.operateRoles.Count > 1)
+            else if (task.operateParticipants.Count > 1)
             {
-                var str_temp = getMultiRolesModifierName(task.operateRoles,sccs) + "()";
+                var str_temp = getMultiParticipantsModifierName(task.operateParticipants,sccs) + "()";
                 function_text += "        " + str_temp + "\n";
                 func.calledModifiers.Add(str_temp);
             }
@@ -403,51 +378,20 @@ namespace Graphical2SmartContact_SCG
             func.calledModifiers.Add(str_temp2);
 
             //return parameters
-            if (task.inputVariables.Count > 0)
+            bool isReturn = false;
+            foreach(var eachtAction in task.actions)
             {
-                function_text += "        returns (";
-                int countOutputVaris = 0;
-                foreach (var outputVari in task.inputVariables)
+                if (eachtAction.outputVariables.Count > 0)
                 {
-                    Parameter returnPara_temp = new Parameter();
-                    returnPara_temp.name = outputVari.name;
-                    if (countOutputVaris > 0)
-                    {
-                        function_text += ",";
-                    }
-                    if (outputVari.type == "string")
-                    {
-                        function_text += outputVari.type + " memory";// + outputVari.name;
-                        returnPara_temp.type = outputVari.type + " memory";
-                    }
-                    else
-                    {
-                        function_text += outputVari.type;// + " " + outputVari.name;
-                        returnPara_temp.type = outputVari.type;
-                    }
-                    countOutputVaris++;
-                    func.returnVaris.Add(returnPara_temp);
-                }
-                //in/output variables for output
-                /*foreach (var inOutputVari in task.inOutVariables)
-                {
-                    if (countOutputVaris > 0)
-                    {
-                        function_text += ", ";
-                    }
-                    if (inOutputVari.type == "string")
-                    {
-                        function_text += inOutputVari.type + " memory " + inOutputVari.name;
-                    }
-                    else
-                    {
-                        function_text += inOutputVari.type + " " + inOutputVari.name;
-                    }
+                    if(!isReturn)
+                        function_text += "        returns (";
 
-                    countOutputVaris++;
-                }*/
-                function_text += ")\n";
+                    function_text += translateInOutputPara(eachtAction.outputVariables, func.returnVaris, false);
+
+                    function_text += ")\n";
+                }
             }
+            
             function_text += "    {\n";
             //Take input variables to state variables
             /*foreach (var inputVariForState in task.inputVariables)
@@ -458,64 +402,87 @@ namespace Graphical2SmartContact_SCG
                 }
             }*/
             //Check for pay type
-            if(task.actionType == "pay" && task.payTypeVariable!=null)
+            //TODO:!!!Each action one called function
+            foreach(var t_action in task.actions)
             {
-                if(task.operateRoles.Count==1)
+                function_text += "        ";
+                var strCalledFunc = t_action.actionID + "(";
+                for(int i = 0; i< t_action.inputVariables.Count; i++)
                 {
-                    function_text += "        " + task.operateRoles[0].name + "Payable.transfer("
-                        + task.payTypeVariable.name+");\n";
+                    if(t_action.inputVariables[i].refVari!="" 
+                        && t_action.inputVariables[i].refVari!=null)
+                    {
+                        strCalledFunc += t_action.inputVariables[i].refVari;
+                    }
+                    else
+                    {
+                        strCalledFunc += t_action.inputVariables[i].name;
+                    }
+                    if(i< t_action.inputVariables.Count-1)
+                    {
+                        strCalledFunc += ", ";
+                    }
                 }
-                else if(task.operateRoles.Count > 1)
-                {
-                    //TODO: more than one roles case
-                }
+                strCalledFunc += ")";
+                func.calledFunctions.Add(strCalledFunc);
+                function_text += strCalledFunc + ";\n";
+                
             }
+
+            function_text += "        ";
+            var strCallFuncTemp = "deleteFlow(ProcessFlow.To" + task.taskID + ")";
+            func.calledFunctions.Add(strCallFuncTemp);
+            function_text += strCallFuncTemp + ";\n";
 
             //Take state variables to output variables 
-            foreach (var outputVariFromState in task.outputVariables)
+            foreach(var eachAction in task.actions)
             {
-                //It is a state variable
-                if (loclaVariables.Exists(x => x.name == outputVariFromState.name))
+                foreach (var outputVariFromState in eachAction.outputVariables)
                 {
-                    function_text += "        return " + outputVariFromState.name + ";\n";
-                }
-                else if (outputVariFromState.value != null
-                    && outputVariFromState.value != "" && outputVariFromState.value != "0")
-                {
-                    function_text += "        return "  + outputVariFromState.value + ";\n";
+                    //It is a state variable
+                    if (loclaVariables.Exists(x => x.name == outputVariFromState.name))
+                    {
+                        function_text += "        return " + outputVariFromState.name + ";\n";
+                    }
+                    else if (outputVariFromState.value != null
+                        && outputVariFromState.value != "" && outputVariFromState.value != "0")
+                    {
+                        function_text += "        return "  + outputVariFromState.value + ";\n";
+                    }
                 }
             }
+            
 
-            function_text += "        deleteFlow(ProcessFlow.To"+ task.taskID+");\n";
-            //deal with process flow
-            if(task.processFlow.nextTasks.Count >= 1)
+            
+            //TODO:!!!!deal with process flow
+            /*if(task.flow.nextTaskIDs.Count >= 1)
             {
-                if(task.processFlow.nextTasks.Count == 1)
+                if(task.flow.nextTaskIDs.Count == 1)
                 {
-                    if(task.processFlow.nextTasks[0].taskID!= "OutputCondition")
+                    if(task.flow.nextTaskIDs[0]!= "OutputCondition")
                     {
                         function_text += "        currentProcessFlows.push(ProcessFlow.To" 
-                            + task.processFlow.nextTasks[0].taskID + ");\n";
+                            + task.flow.nextTaskIDs[0] + ");\n";
                     }
                     
                 }
-                else if (task.processFlow.splitOperation == "and")
+                else if (task.flow.splitOperation == "and")
                 {
-                    foreach(var nextproc in task.processFlow.nextTasks)
+                    foreach(var nextproc in task.flow.nextTaskIDs)
                     {
-                        if (nextproc.taskID != "OutputCondition")
+                        if (nextproc != "OutputCondition")
                         {
                             function_text += "        currentProcessFlows.push(ProcessFlow.To"
-                                + nextproc.taskID + ");\n";
+                                + nextproc + ");\n";
                         }
                         
                     }
                 }
-                else if(task.processFlow.splitOperation == "xor")
+                /*else if(task.flow.splitOperation == "xor")
                 {
                     var strElseText = "        else\n        {\n";
                     bool isFirstIf = true;
-                    foreach (var nextproc in task.processFlow.nextTasks)
+                    foreach (var nextproc in task.flow.nextTaskIDs)
                     {
                         if(nextproc.condition == "otherwise")
                         {
@@ -550,38 +517,250 @@ namespace Graphical2SmartContact_SCG
                     }
                     function_text += strElseText;
                 }
-            }
+            }*/
             
             function_text += "    }\n\n";
             return function_text;
         }
 
-        string getMultiRolesModifierName(List<Role> roles, SmartContractComponents sccs)
+        string getMultiParticipantsModifierName(List<Participant> participants, SmartContractComponents sccs)
         {
             string nameResult = "Error";
-            foreach(var multiRoles in sccs.allMultiModifiers)
+            foreach(var multiParticipants in sccs.allMultiModifiers)
             {
-                if(roles == multiRoles.roles)
+                if(participants == multiParticipants.participants)
                 {
-                    nameResult = multiRoles.modifierName;
+                    nameResult = multiParticipants.modifierName;
                 }
-                else if(roles.Count == multiRoles.roles.Count)
+                else if(participants.Count == multiParticipants.participants.Count)
                 {
                     bool isMatch = true;
-                    foreach(var tempRole in roles)
+                    foreach(var tempParticipant in participants)
                     {
-                        if(!multiRoles.roles.Contains(tempRole))
+                        if(!multiParticipants.participants.Contains(tempParticipant))
                         {
                             isMatch = false;
                         }
                     }
                     if(isMatch)
                     {
-                        nameResult = multiRoles.modifierName;
+                        nameResult = multiParticipants.modifierName;
                     }
                 }
             }
             return nameResult;
         }
+
+
+        protected void generateSCGActionContract(List<SCGAction> allActions, string contractName, SmartContractComponents sccs, SCGChecker checker)
+        {
+            SmartContract file = new SmartContract();
+            file.contractName = checker.checkNameValid(contractName);
+
+            file.fileAllText += "contract " + file.contractName + "{\n";
+
+            //Automated generated data struct for managing the data in the basic level of action
+            SCGStruct scgDataStruct = new SCGStruct();
+            scgDataStruct.structName = "SCGData";
+            Parameter pName = new Parameter();
+            pName.name = "name";
+            pName.type = "string";
+            scgDataStruct.parameters.Add(pName);
+            Parameter pValue = new Parameter();
+            pValue.name = "value";
+            pValue.type = "string";
+            scgDataStruct.parameters.Add(pValue);
+            file.fileAllText += "\n   //Data structure for basic level of actions" +
+                                "\n    struct "+ scgDataStruct.structName + " { " +
+                                "\n       "+ pName.type + " "+ pName.name + "; " +
+                                "\n       " + pValue.type + " " + pValue.name + "; " +
+                                "\n   }";
+            file.structs.Add(scgDataStruct);
+
+            //Generate a state variable for storing all the data
+            //The way of adding a SCGData: SCGData example = SCGData("name1", "value1");
+            SCGVariable variSCGData = new SCGVariable();
+            variSCGData.name = "allSCGData";
+            variSCGData.type = scgDataStruct.structName + "[]";
+            file.fileAllText += "\n   //All data for basic level of actions" +
+                                "\n   SCGData[] allSCGData;\n";
+            file.stateVariables.Add(variSCGData);
+
+            // Action functions
+            foreach(var eachAction in allActions)
+            {
+                if(!file.functions.Exists(x=>x.name== eachAction.actionID))
+                {
+                    Function funActionTemp = new Function();
+
+                    file.fileAllText += addActionFunction(eachAction, funActionTemp);
+
+                    file.functions.Add(funActionTemp);
+                }
+                else
+                {
+                    checker.setErrorMessages("[Warning] action " + eachAction.actionID + " exists.\n");
+                }
+                
+            }
+
+            file.fileAllText += "}\n";
+
+
+            sccs.allSmartContracts.Add(file);
+        }
+
+        string addActionFunction(SCGAction eachAction, Function actionFunc)
+        {
+            string text = "";
+            actionFunc.name = eachAction.actionID;
+            text += "    function " + actionFunc.name + "(";
+
+            //Input variables
+            if (actionFunc.name == "add")
+            {
+                Parameter inputPara = new Parameter();
+                inputPara.name = "addData";
+                inputPara.type = "SCGData[] memory";
+                text += inputPara.type + " " + inputPara.name;
+                actionFunc.inputParams.Add(inputPara);
+            }
+            else if(actionFunc.name == "pay")
+            {
+                var type = "string memory";
+                Parameter inputPara1 = new Parameter();
+                inputPara1.name = "paymentAmount";
+                inputPara1.type = type;
+                text += inputPara1.type + " " + inputPara1.name;
+                actionFunc.inputParams.Add(inputPara1);
+                text += ", ";
+                Parameter inputPara2 = new Parameter();
+                inputPara2.name = "paymentMethod";
+                inputPara2.type = type;
+                text += inputPara2.type + " " + inputPara2.name;
+                actionFunc.inputParams.Add(inputPara2);
+                text += ", ";
+                Parameter inputPara3 = new Parameter();
+                inputPara3.name = "paymentReceiver";
+                inputPara3.type = "address";
+                text += inputPara3.type + " " + inputPara3.name;
+                actionFunc.inputParams.Add(inputPara3);
+            }
+            else if (eachAction.inputVariables.Count > 0)
+            {
+                text += translateInOutputPara(eachAction.inputVariables, actionFunc.inputParams, false);
+            }
+
+
+            text += ")\n        internal\n    ";
+
+            if (eachAction.outputVariables.Count > 0)
+            {
+                text += "    returns (";
+                text += translateInOutputPara(eachAction.outputVariables, actionFunc.returnVaris, false);
+                text += ")\n";
+            }
+
+
+
+
+            text += "{\n        ";
+
+
+
+            //TODO:!!!Think about what statements to be added here!
+            //TODO: !! check about this pay function
+            /*if (task.operateParticipants.Count == 1)
+            {
+                function_text += "        " + task.operateParticipants[0].name + "Payable.transfer("
+                    + task.payTypeVariable.name + ");\n";
+            }
+            else if (task.operateParticipants.Count > 1)
+            {
+                //TODO: more than one participants case
+            }*/
+            text += "\n    }\n\n";
+            return text;
+        }
+
+        /*string translateInOutputParaMain(List<SCGVariable> targetVariables, List<Parameter> targetParas, bool isMain)
+        {
+            int countInOutputVaris = 0;
+            string function_text = "";
+            //put each vari to para
+            foreach (var eachVari in targetVariables)
+            {
+                // isMain & isInput: the variable with variRef no need to print
+                // not isMain (isAction): the variRef should be print
+                if (!targetParas.Exists(x => x.name == eachVari.name)
+                    && !(isInput && allVariables.Exists(x => x.name == eachVari.name)))
+                {
+                    Parameter para_temp = new Parameter();
+                    para_temp.name = eachVari.name;
+                    if (countInOutputVaris > 0)
+                    {
+                        function_text += ", ";
+                    }
+                    if (eachVari.type == "string" || eachVari.type == "email" || eachVari.type == "")// || inputVari.type == null)
+                    {
+                        function_text += "string memory " + eachVari.name;
+                        para_temp.type = "string memory";
+                    }
+                    else
+                    {
+                        function_text += eachVari.type + " " + eachVari.name;
+                        para_temp.type = eachVari.type;
+                    }
+                    countInOutputVaris++;
+                    targetParas.Add(para_temp);
+
+                }
+            }
+            return function_text;
+        }*/
+
+        //countMain = -1 means not main (i.e., is action)
+        string translateInOutputPara(List<SCGVariable> targetVariables, List<Parameter> targetParas, bool isInputMain)
+        {
+            string function_text = "";
+            //put each vari to para
+            for (int i= 0; i < targetVariables.Count; i++)
+            {
+                if (!targetParas.Exists(x => x.name == targetVariables[i].name) 
+                    && !( isInputMain && targetVariables[i].refVari!=null 
+                    && targetVariables[i].refVari!=""))
+                {
+                    Parameter para_temp = new Parameter();
+                    if(targetVariables[i].refVari != null && targetVariables[i].refVari != "")
+                    {
+                        para_temp.name = targetVariables[i].refVari;
+                    }
+                    else
+                    {
+                        para_temp.name = targetVariables[i].name;
+                    }
+                    
+                    if (i < targetVariables.Count-1)
+                    {
+                        function_text += ", ";
+                    }
+                    if (targetVariables[i].type == "string" || targetVariables[i].type == "email" 
+                        || targetVariables[i].type == "")// || inputVari.type == null)
+                    {
+                        function_text += "string memory " + targetVariables[i].name;
+                        para_temp.type = "string memory";
+                    }
+                    else
+                    {
+                        function_text += targetVariables[i].type + " " + targetVariables[i].name;
+                        para_temp.type = targetVariables[i].type;
+                    }
+                    targetParas.Add(para_temp);
+
+                }
+            }
+            return function_text;
+        }
+
     }
 }
