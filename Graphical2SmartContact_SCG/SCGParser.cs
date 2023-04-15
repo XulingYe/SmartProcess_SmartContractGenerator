@@ -152,16 +152,20 @@ namespace Graphical2SmartContact_SCG
                                             if(taskElement.Name == "bpmn:extensionElements")
                                             {
                                                 XmlNode actions_node = taskElement.GetElementsByTagName("scg:actions").Item(0);
-                                                foreach(XmlNode action_node in actions_node.ChildNodes)
+                                                if(actions_node != null)
                                                 {
-                                                    if(action_node!=null && action_node.GetType().Name == "XmlElement")
+                                                    foreach(XmlNode action_node in actions_node.ChildNodes)
                                                     {
-                                                        XmlElement actionElement = (XmlElement)action_node;
-                                                        var actionTemp = parseEachActionInfo(actionElement, taskTemp, pcs.allLocalVariables, scg_checker);
-                                                        //taskTemp.actions.Add(actionTemp);
-                                                        pcs.allActions.Add(actionTemp);
+                                                        if(action_node!=null && action_node.GetType().Name == "XmlElement")
+                                                        {
+                                                            XmlElement actionElement = (XmlElement)action_node;
+                                                            var actionTemp = parseEachActionInfo(actionElement, taskTemp, pcs.allLocalVariables, scg_checker);
+                                                            //taskTemp.actions.Add(actionTemp);
+                                                            pcs.allActions.Add(actionTemp);
+                                                        }
                                                     }
                                                 }
+                                                
                                             }
                                             //incoming and outgoing
                                             else if(taskElement.Name == "bpmn:incoming")

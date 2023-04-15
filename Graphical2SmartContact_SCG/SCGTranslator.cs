@@ -104,8 +104,8 @@ namespace Graphical2SmartContact_SCG
             }
 
             //participants in state variables
-            /*mainContract.fileAllText += "\n//Participants in state variables\n";
-            var strParticipantsInModifier = "";
+            mainContract.fileAllText += "\n//Participants in state variables\n";
+            //var strParticipantsInModifier = "";
             foreach (var participant_graphical in pcs.allParticipants)
             {
                 SCGVariable variTemp = new SCGVariable();
@@ -117,9 +117,9 @@ namespace Graphical2SmartContact_SCG
                     mainContract.fileAllText += "payable ";
                     variTemp.type += " payable";
                 }
-                participant_graphical.name = checker.checkNameValid(participant_graphical.name);
-                mainContract.fileAllText += participant_graphical.name;
-                variTemp.name = participant_graphical.name;
+                participant_graphical.id = checker.checkNameValid(participant_graphical.id);
+                mainContract.fileAllText += participant_graphical.id;
+                variTemp.name = participant_graphical.id;
                 var founAddr = participant_graphical.allInfo.Find(x => x.type == "address");
                 if (founAddr!=null)
                 {
@@ -136,11 +136,11 @@ namespace Graphical2SmartContact_SCG
                     mainContract.fileAllText += strParticipantValue;
                     variTemp.value = strParticipantValue;
                 }
-                mainContract.fileAllText += ";\n";
+                mainContract.fileAllText += "; //" + participant_graphical.name + "\n";
                 mainContract.stateVariables.Add(variTemp);
 
                 
-            }*/
+            }
 
             //defined modifiers in graphical representations
             mainContract.fileAllText += "\n//Modifiers\n";
@@ -151,10 +151,10 @@ namespace Graphical2SmartContact_SCG
                 tempModi.name = "Only" + eachParticipant.name;
                 mainContract.fileAllText += "    modifier " + tempModi.name + "("
                     + "){\n        ";
-                tempModi.statementsText = "require(\n          msg.sender == ";
+                tempModi.statementsText = "require(\n          msg.sender == "+ eachParticipant.id;
 
-                var foundAddr = eachParticipant.allInfo.Find(x => x.type == "address");
-                tempModi.statementsText += foundAddr.name;
+                /*var foundAddr = eachParticipant.allInfo.Find(x => x.type == "address");
+                tempModi.statementsText += foundAddr.name;*/
                 tempModi.statementsText += ",\n           \"Only " + eachParticipant.name + " can access this function.\"\n"
                     + "         );\n";
 
