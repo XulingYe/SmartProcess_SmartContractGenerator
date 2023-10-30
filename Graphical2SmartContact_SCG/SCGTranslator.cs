@@ -240,21 +240,21 @@ namespace Graphical2SmartContact_SCG
                 }
                 if (flow.sourceRef != "InputCondition")
                 {
-                    string strProcessName = "To" + flow.sourceRef;
+                    string strProcessName = flow.sourceRef;
                     file.fileAllText += strProcessName;
                     enumProcessFlowTemp.enumValues.Add(strProcessName);
                     count++;
                 }
                 else
                 {
-                    initailValue = "ProcessFlow.To" + flow.TargetRef;
+                    initailValue = "ProcessFlow." + flow.TargetRef;
                 }
             }
             file.fileAllText += " }\n\n";
             file.enums.Add(enumProcessFlowTemp);
 
             //current process flow
-            file.fileAllText += "    ProcessFlow[] currentProcessFlows;\n\n";// = " + initailValue + ";\n\n";
+            //file.fileAllText += "    ProcessFlow[] currentProcessFlows;\n\n";// = " + initailValue + ";\n\n";
             SCGVariable variTemp = new SCGVariable();
             variTemp.name = "currentProcessFlows";
             variTemp.type = "ProcessFlow[]";
