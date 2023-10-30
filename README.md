@@ -6,6 +6,8 @@ Afterward, we allow to generate from BPMN to smart contracts.
 
 All copyright reserved to Xuling Ye (https://xulingye.github.io/).
 
+BPMN diagram is devloped based on BPMN.Sharp
+
 
 ## Direct execution: 
 Go to `SmartProcess_SmartContractGenerator/Graphical2SmartContact_SCG/bin/Debug`, download this folder. 
