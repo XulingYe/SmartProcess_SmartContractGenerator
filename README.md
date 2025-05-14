@@ -19,9 +19,11 @@ _Note: It may only be executable in Windows 10._
 
 If you use this code in your research, please cite it as follows:
 
-- YAWL to Smart Contract: **Ye, X., & König, M.** (2021). From the graphical representation to the smart contract language: a use case in the construction industry. _Proceedings of the 38th International Symposium on Automation and Robotics in Construction_, 272–279. https://doi.org/10.22260/isarc2021/0039
+#### YAWL to Smart Contract:
+- **Ye, X., & König, M.** (2021). From the graphical representation to the smart contract language: a use case in the construction industry. _Proceedings of the 38th International Symposium on Automation and Robotics in Construction_, 272–279. https://doi.org/10.22260/isarc2021/0039
 
-- BPMN to Smart Contracts: **Ye, X., Zeng, N., Tao, X., Han, D., & König, M.** (2024). Smart contract generation and visualization for construction business process collaboration and automation: upgraded workflow engine. _Journal of Computing in Civil Engineering_, 38(6), Article 04024030. https://doi.org/10.1061/jccee5.cpeng-5938
+#### BPMN to Smart Contracts:
+-  **Ye, X., Zeng, N., Tao, X., Han, D., & König, M.** (2024). Smart contract generation and visualization for construction business process collaboration and automation: upgraded workflow engine. _Journal of Computing in Civil Engineering_, 38(6), Article 04024030. https://doi.org/10.1061/jccee5.cpeng-5938
 
 
 
